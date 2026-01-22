@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Блог DOT | Godot Engine для начинающих и продвинутых</title>
+    <meta name="description" content="Статьи, туториалы и уроки по Godot Engine от школы разработки игр DOT">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Фиолетово-синяя палитра DOT */
+            --primary-blue: #4338CA;
+            --secondary-blue: #4F46E5;
+            --accent-purple: #7C3AED;
+            --light-blue: #E0E7FF;
+            --dark-blue: #312E81;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gradient-main: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            --gradient-subtle: linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 100%);
+            --gradient-dark: linear-gradient(135deg, #312E81 0%, #4C1D95 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1), 0 2px 4px -1px rgba(67, 56, 202, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(67, 56, 202, 0.15);
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: var(--dark-blue);
+        }
+
+        h2 {
+            font-size: 2.8rem;
+            margin-bottom: 40px;
+            text-align: center;
+            color: var(--dark-blue);
+        }
+
+        h2 .accent-font {
+            color: var(--accent-purple);
+            font-size: 3.2rem;
+        }
+
+        .section-title {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 60px;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--gradient-main);
+            border-radius: 2px;
+        }
+
+        /* Шапка */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 20px rgba(67, 56, 202, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-purple);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Герой секция блога */
+        .blog-hero {
+            padding-top: 180px;
+            background: var(--gradient-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blog-hero::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 400px;
+            height: 400px;
+            background: var(--primary-blue);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+
+        .blog-hero-content {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .blog-hero-tag {
+            display: inline-block;
+            background: rgba(67, 56, 202, 0.1);
+            color: var(--primary-blue);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 20px;
+            vertical-align: middle;
+        }
+
+        .blog-hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 40px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 30px;
+        }
+
+        .category {
+            background: white;
+            border: 2px solid var(--light-blue);
+            padding: 10px 24px;
+            border-radius: 50px;
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .category:hover, .category.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        /* Сетка статей */
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .blog-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-image {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-main);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(67, 56, 202, 0.2);
+        }
+
+        .card-content {
+            padding: 25px;
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .card-meta i {
+            margin-right: 5px;
+            color: var(--primary-blue);
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.4;
+            color: var(--dark-blue);
+        }
+
+        .card-title a {
+            color: var(--dark-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .card-title a:hover {
+            color: var(--primary-blue);
+        }
+
+        .card-excerpt {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--light-blue);
+        }
+
+        .read-more {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .read-more:hover {
+            color: var(--accent-purple);
+            transform: translateX(5px);
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Избранная статья */
+        .featured-post {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+            margin-bottom: 40px;
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .featured-post .card-image {
+            height: 350px;
+            border-radius: var(--radius) 0 0 var(--radius);
+        }
+
+        .featured-content {
+            padding: 40px;
+        }
+
+        .featured-badge {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(67, 56, 202, 0.2);
+        }
+
+        .featured-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            color: var(--dark-blue);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--light-blue);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--light-blue);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Пагинация */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 40px;
+            margin-bottom: 60px;
+        }
+
+        .page-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 2px solid var(--light-blue);
+            border-radius: 8px;
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .page-link:hover {
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .page-link.active {
+            background: var(--gradient-main);
+            border-color: var(--primary-blue);
+            color: white;
+        }
+
+        .page-link.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(67, 56, 202, 0.1);
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.8rem;
+            }
+
+            h2 {
+                font-size: 2.2rem;
+            }
+
+            .featured-post {
+                grid-template-columns: 1fr;
+            }
+
+            .featured-post .card-image {
+                height: 250px;
+                border-radius: var(--radius) var(--radius) 0 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            section {
+                padding: 60px 0;
+            }
+
+            .blog-hero {
+                padding-top: 150px;
+            }
+
+            .blog-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="blog.html" class="nav-link active">Блог</a>
+                    <a href="index.html#about" class="nav-link">О нас</a>
+                    <a href="index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="index.html#plan" class="nav-link">Программа</a>
+                    <a href="index.html#projects" class="nav-link">Проекты</a>
+                    <a href="index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Главная</a>
+                <a href="blog.html" class="mobile-nav-link">Блог</a>
+                <a href="index.html#about" class="mobile-nav-link">О нас</a>
+                <a href="index.html#lessons" class="mobile-nav-link">Занятия</a>
+                <a href="index.html#plan" class="mobile-nav-link">Программа</a>
+                <a href="index.html#projects" class="mobile-nav-link">Проекты</a>
+                <a href="index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                <a href="index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Герой секция блога -->
+    <section class="blog-hero">
+        <div class="container">
+            <div class="blog-hero-content">
+                <h1>Изучайте <span class="accent-font">Godot Engine</span> с нами</h1>
+                <p class="blog-hero-subtitle">Практические руководства, туториалы и советы по разработке игр на современном игровом движке. От простых 2D-платформеров до сложных 3D-игр.</p>
+
+                <div class="categories">
+                    <div class="category active" data-category="all">Все статьи</div>
+                    <div class="category" data-category="2d">2D</div>
+                    <div class="category" data-category="3d">3D</div>
+                    <div class="category" data-category="gdscript">GDScript</div>
+                    <div class="category" data-category="ui">UI/UX</div>
+                    <div class="category" data-category="master">Мастер-классы</div>
+                    <div class="category" data-category="ai">AI</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент -->
+    <main class="container">
+        <!-- Избранная статья -->
+        <div class="blog-grid">
+            <article class="blog-card featured-post fade-in" data-categories="gdscript,2d,3d" data-page="1">
+                <div class="card-image" style="background-image: url('image-blog/1.gif');">
+                    <div class="card-badge">Рекомендуем</div>
+                </div>
+
+                <div class="featured-content">
+                    <div class="featured-badge">Новое</div>
+                    <h2 class="featured-title">Godot: что это и с чем его едят? Или почему же вы должны научиться в нём работать!</h2>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 22 января 2026</span>
+                        <span><i class="far fa-clock"></i> 16 мин чтения</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">В этом подробном руководстве мы разберем все ключевые особенности Godot Engine: преимущества движка, сравнение с другими движками, основные возможности и почему стоит выбрать именно Godot для вашего первого проекта.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageGodotMain.html" class="read-more">Читать статью <i class="fas fa-arrow-right"></i></a>
+                        <div class="card-tags">
+                            <span class="tag">Godot 4.0</span>
+                            <span class="tag">Введение</span>
+                            <span class="tag">GDScript</span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Статьи -->
+            <article class="blog-card fade-in" data-categories="2d" data-page="1">
+                <div class="card-image" style="background-image: url('image-blog/2.gif');">
+                    <div class="card-badge">2D</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageArea2D.html">Как работать с Area2D в Godot: полное руководство для 2D-игр</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 21 января 2026</span>
+                        <span><i class="far fa-clock"></i> 14 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Подробное руководство по использованию узла Area2D для обнаружения объектов, а также создание взаимодействий в 2D-играх.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageArea2D.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="master,ui" data-page="1">
+                <div class="card-image" style="background-image: url('image-blog/3.gif');">
+                    <div class="card-badge">Мастер-класс</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageClicker.html">Мастер-класс: создание простого кликера в Godot с нуля</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 19 января 2026</span>
+                        <span><i class="far fa-clock"></i> 18 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Пошаговое создание простейшей кликер-игры с системой улучшений, автоматическим заработком и прогрессией. Идеальный первый проект для начинающих.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageClicker.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="2d,ui" data-page="1">
+                <div class="card-image" style="background-image: url('image-blog/4.gif');">
+                    <div class="card-badge">2D</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageDialog.html">Создание системы диалогов в 2D-игре на Godot</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 17 января 2026</span>
+                        <span><i class="far fa-clock"></i> 22 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Узнаем, как разработать полноценную систему диалогов с ветвлениями, выбором реплик и сохранением прогресса. Подходит для RPG и визуальных новелл.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageDialog.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="2d,ai" data-page="1">
+                <div class="card-image" style="background-image: url('image-blog/5.gif');">
+                    <div class="card-badge">AI</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageEnemy.html">Преследование врагами в Godot</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 15 января 2026</span>
+                        <span><i class="far fa-clock"></i> 12 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Реализуем систему преследования врагами игрока с использованием простого ИИ, познакомимся RayCast и патрулированием территории.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageEnemy.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="3d,shooter" data-page="1">
+                <div class="card-image" style="background-image: url('image-blog/6.gif');">
+                    <div class="card-badge">3D</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageFPS.html">Простейший FPS шутер в Godot</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 13 января 2026</span>
+                        <span><i class="far fa-clock"></i> 25 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Создаем базовый FPS шутер с движением, стрельбой, перезарядкой, системой здоровья и простыми врагами. Отличный старт для 3D-разработки.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageFPS.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="ui" data-page="1">
+                <div class="card-image" style="background-image: url('image-blog/7.gif');">
+                    <div class="card-badge">UI/UX</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageGUI.html">Как сделать простой и функциональный GUI в Godot</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 11 января 2026</span>
+                        <span><i class="far fa-clock"></i> 16 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Научимся основам работы с GUI, узнаем про Label и ProgressBar. Работа с Control нодами и их правильное позиционирование.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageGUI.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="3d,horror" data-page="2">
+                <div class="card-image" style="background-image: url('image-blog/8.gif');">
+                    <div class="card-badge">Хоррор</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageHorror.html">Как сделать хоррор в Godot: лайфхаки и советы</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 9 января 2026</span>
+                        <span><i class="far fa-clock"></i> 20 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Как создать простой, но интересный хоррор? Я тоже не знаю, но знаю, что с этой статьёй вы сможете хотя бы попробовать сделать что-то интересное.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageHorror.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="3d,master" data-page="2">
+                <div class="card-image" style="background-image: url('image-blog/9.gif');">
+                    <div class="card-badge">Мастер-класс</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageRace.html">Мастер-класс: создание простой гоночной игры в Godot с нуля</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 7 января 2026</span>
+                        <span><i class="far fa-clock"></i> 28 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Разработаем простую гоночную 2D-игру</p>
+                    <div class="card-footer">
+                        <a href="pages/pageRace.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="gdscript" data-page="2">
+                <div class="card-image" style="background-image: url('image-blog/10.gif');">
+                    <div class="card-badge">GDScript</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="pages/pageTouched.html">10 простых скриптов на касание в Godot</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 5 января 2026</span>
+                        <span><i class="far fa-clock"></i> 14 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Коллекция готовых скриптов для обработки касаний: перетаскивание объектов, мультитач, жесты, зуммирование и другие мобильные взаимодействия.</p>
+                    <div class="card-footer">
+                        <a href="pages/pageTouched.html" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+            <!--
+            <article class="blog-card fade-in" data-categories="3d,ui" data-page="2">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                    <div class="card-badge">3D</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="#">Простейший инвентарь в 3D-игре</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 4 января 2026</span>
+                        <span><i class="far fa-clock"></i> 19 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Создаем систему инвентаря для 3D-игры: подбор предметов, отображение в интерфейсе, использование и хранение. Подходит для RPG и survival игр.</p>
+                    <div class="card-footer">
+                        <a href="#" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="2d,master" data-page="2">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                    <div class="card-badge">2D</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="#">Платформер в Godot за час</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 4 января 2026</span>
+                        <span><i class="far fa-clock"></i> 10 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Быстрое создание работающего 2D-платформера с прыжками, передвижением, врагами и сбором предметов. Идеальный первый проект для новичков.</p>
+                    <div class="card-footer">
+                        <a href="#" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <article class="blog-card fade-in" data-categories="gdscript" data-page="2">
+                <div class="card-image" style="background-image: url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                    <div class="card-badge">GDScript</div>
+                </div>
+
+                <div class="card-content">
+                    <h3 class="card-title"><a href="#">Основы GDScript: переменные и типы данных</a></h3>
+                    <div class="card-meta">
+                        <span><i class="far fa-calendar"></i> 3 января 2026</span>
+                        <span><i class="far fa-clock"></i> 12 мин</span>
+                        <span><i class="far fa-user"></i> Максим Мягчило</span>
+                    </div>
+                    <p class="card-excerpt">Изучаем фундамент GDScript: объявление переменных, основные типы данных (int, float, String, bool, Array, Dictionary), их использование и преобразование.</p>
+                    <div class="card-footer">
+                        <a href="#" class="read-more">Читать <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </article>-->
+        </div>
+
+        <!-- Пагинация -->
+        <div class="pagination">
+            <a href="#" class="page-link active" data-page="1">1</a>
+            <a href="#" class="page-link" data-page="2">2</a>
+            <!--<a href="#" class="page-link" data-page="3">3</a>-->
+        </div>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. Мы помогаем создавать игры с 2023 года. Блог DOT — это собрание полезных материалов для начинающих и продвинутых разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#" data-category="2d">2D разработка</a></li>
+                        <li><a href="#" data-category="3d">3D графика</a></li>
+                        <li><a href="#" data-category="gdscript">GDScript</a></li>
+                        <li><a href="#" data-category="ui">UI/UX дизайн</a></li>
+                        <li><a href="#" data-category="master">Мастер-классы</a></li>
+                        <li><a href="#" data-category="ai">AI и враги</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Мобильное меню
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Закрытие меню при клике на ссылку
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        // Фиксированная шапка при скролле
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    // Закрываем мобильное меню если открыто
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Анимация появления карточек при скролле
+        const fadeElements = document.querySelectorAll('.fade-in');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        fadeElements.forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Система фильтрации и пагинации
+        let currentCategory = 'all';
+        let currentPage = 1;
+        const articles = document.querySelectorAll('.blog-card');
+        const pageLinks = document.querySelectorAll('.page-link');
+        const categories = document.querySelectorAll('.category');
+
+        // Инициализация
+        function initFilterAndPagination() {
+            updateDisplay();
+
+            // Обработчики для категорий
+            categories.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Удаляем активный класс у всех кнопок
+                    categories.forEach(b => b.classList.remove('active'));
+                    // Добавляем активный класс нажатой кнопке
+                    this.classList.add('active');
+
+                    // Устанавливаем текущую категорию
+                    currentCategory = this.getAttribute('data-category');
+                    currentPage = 1;
+
+                    // Обновляем отображение
+                    updateDisplay();
+
+                    // Обновляем активную страницу в пагинации
+                    updatePaginationActiveState();
+                });
+            });
+
+            // Обработчики для пагинации
+            pageLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (this.classList.contains('disabled')) return;
+
+                    const page = parseInt(this.getAttribute('data-page'));
+                    if (page === currentPage) return;
+
+                    currentPage = page;
+
+                    // Обновляем отображение
+                    updateDisplay();
+
+                    // Обновляем активную страницу в пагинации
+                    updatePaginationActiveState();
+
+                    // Прокручиваем к началу сетки статей
+                    document.querySelector('.blog-grid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+
+            // Обработчики для категорий в футере
+            document.querySelectorAll('.footer-links a[data-category]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const category = this.getAttribute('data-category');
+
+                    // Находим и активируем соответствующую кнопку категории
+                    categories.forEach(btn => {
+                        if (btn.getAttribute('data-category') === category) {
+                            btn.click();
+                        }
+                    });
+                });
+            });
+        }
+
+        // Обновление отображения
+        function updateDisplay() {
+            let visibleCount = 0;
+
+            articles.forEach(article => {
+                const articleCategories = article.getAttribute('data-categories').split(',');
+                const articlePage = parseInt(article.getAttribute('data-page'));
+
+                // Проверяем категорию
+                const categoryMatch = currentCategory === 'all' || articleCategories.includes(currentCategory);
+
+                // Проверяем страницу
+                const pageMatch = articlePage === currentPage;
+
+                // Проверяем, является ли статья избранной (у нее нет data-page или она на 1 странице)
+                const isFeatured = article.classList.contains('featured-post');
+                const featuredShouldShow = isFeatured && currentPage === 1 && (currentCategory === 'all' || articleCategories.includes(currentCategory));
+
+                // Показываем статью если:
+                // 1. Это избранная статья и она должна быть показана
+                // 2. ИЛИ это обычная статья, которая соответствует категории и странице
+                if (featuredShouldShow || (!isFeatured && categoryMatch && pageMatch)) {
+                    article.style.display = 'block';
+                    visibleCount++;
+
+                    // Анимация появления
+                    article.style.opacity = '0';
+                    article.style.transform = 'translateY(20px)';
+                    setTimeout(() => {
+                        article.style.opacity = '1';
+                        article.style.transform = 'translateY(0)';
+                        article.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    }, 50);
+                } else {
+                    article.style.display = 'none';
+                }
+            });
+
+            // Если на странице нет статей, показываем сообщение
+            const blogGrid = document.querySelector('.blog-grid');
+            let noResults = blogGrid.querySelector('.no-results');
+
+            if (visibleCount === 0) {
+                if (!noResults) {
+                    noResults = document.createElement('div');
+                    noResults.className = 'no-results';
+                    noResults.style.cssText = `
+                        grid-column: 1 / -1;
+                        text-align: center;
+                        padding: 60px 20px;
+                        color: var(--text-light);
+                        font-size: 18px;
+                    `;
+                    noResults.innerHTML = `
+                        <i class="fas fa-search" style="font-size: 48px; margin-bottom: 20px; color: var(--light-blue);"></i>
+                        <h3 style="margin-bottom: 10px; color: var(--text-dark);">Статьи не найдены</h3>
+                        <p>Попробуйте выбрать другую категорию или страницу</p>
+                    `;
+                    blogGrid.appendChild(noResults);
+                }
+            } else if (noResults) {
+                noResults.remove();
+            }
+        }
+
+        // Обновление активного состояния пагинации
+        function updatePaginationActiveState() {
+            pageLinks.forEach(link => {
+                const page = parseInt(link.getAttribute('data-page'));
+                if (page === currentPage) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // Инициализация при загрузке
+        window.addEventListener('DOMContentLoaded', () => {
+            initFilterAndPagination();
+
+            // Анимация при загрузке страницы
+            document.querySelector('.blog-hero-content').style.opacity = '1';
+            document.querySelector('.blog-hero-content').style.transform = 'translateY(0)';
+            document.querySelector('.blog-hero-content').style.transition = 'opacity 1s ease, transform 1s ease';
+
+            // Добавляем анимацию к категориям
+            document.querySelectorAll('.category').forEach((cat, index) => {
+                cat.style.animationDelay = `${index * 0.1}s`;
+                cat.classList.add('fade-in');
+                observer.observe(cat);
+            });
+        });
+    </script>
+</body>
+</html>
