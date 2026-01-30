@@ -1,0 +1,3017 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Как сделать хоррор в Godot: лайфхаки и советы для новичков | Блог DOT</title>
+    <meta name="description" content="Полное руководство по созданию хоррор-игры в Godot: скримеры, атмосфера, звуки, свет и психологические приемы для устрашения игрока.">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Темная палитра для хоррора */
+            --primary-dark: #0f172a;
+            --secondary-dark: #1e293b;
+            --accent-red: #dc2626;
+            --accent-purple: #7c3aed;
+            --light-gray: #e2e8f0;
+            --dark-blue: #1e40af;
+            --text-light: #f1f5f9;
+            --text-gray: #94a3b8;
+            --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --gradient-blood: linear-gradient(135deg, #7f1d1d 0%, #450a0a 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            --code-bg: #1a1b26;
+            --code-text: #c0caf5;
+            --horror-border: #dc2626;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--primary-dark);
+            color: var(--text-light);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(220, 38, 38, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.1) 0%, transparent 20%);
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .horror-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+            position: relative;
+            display: inline-block;
+        }
+
+        .horror-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-red);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .horror-title:hover::after {
+            transform: scaleX(1);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-blood);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+            font-family: 'Raleway', sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--text-light);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--text-light);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--accent-red);
+            border-radius: 2px;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.5);
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 15px;
+            color: var(--text-light);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 25px 0 10px;
+            color: var(--accent-red);
+        }
+
+        /* Шапка */
+        header {
+            background-color: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .header-scrolled {
+            background-color: rgba(15, 23, 42, 0.98);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-red);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+            text-shadow: 0 0 5px rgba(220, 38, 38, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-red);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent-red);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--accent-red);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--accent-red);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            padding: 120px 0 40px;
+            background: var(--gradient-dark);
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .breadcrumbs::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,0 L100,100" stroke="rgba(220,38,38,0.1)" stroke-width="1"/></svg>');
+            opacity: 0.3;
+        }
+
+        .breadcrumbs-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--text-gray);
+            position: relative;
+            z-index: 1;
+        }
+
+        .breadcrumbs a {
+            color: var(--accent-red);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumbs a:hover {
+            color: #f87171;
+            text-decoration: underline;
+        }
+
+        /* Мета-информация статьи */
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid rgba(220, 38, 38, 0.2);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-gray);
+            font-size: 15px;
+        }
+
+        .meta-item i {
+            color: var(--accent-red);
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: rgba(220, 38, 38, 0.2);
+            color: var(--accent-red);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        /* Контент статьи */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 60px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .article-content li::before {
+            content: '•';
+            color: var(--accent-red);
+            position: absolute;
+            left: -20px;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--accent-red);
+            padding-left: 25px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-gray);
+            font-size: 1.2rem;
+            background: rgba(220, 38, 38, 0.05);
+            padding: 20px;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        /* Блоки кода */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid var(--accent-red);
+            box-shadow: var(--shadow);
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--code-text);
+        }
+
+        .code-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(220, 38, 38, 0.2);
+            color: var(--code-text);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-red);
+        }
+
+        .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* Интерактивные примеры */
+        .interactive-example {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            position: relative;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--accent-red);
+            font-weight: 600;
+        }
+
+        .example-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            margin: 20px 0;
+            background: rgba(15, 23, 42, 0.7);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+            border-left: 4px solid var(--accent-red);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tip-box h4 {
+            color: var(--accent-red);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(127, 29, 29, 0.2) 100%);
+            border-left: 4px solid #b91c1c;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .warning-box h4 {
+            color: #b91c1c;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lifehack-box {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(79, 70, 229, 0.1) 100%);
+            border-left: 4px solid var(--accent-purple);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .lifehack-box h4 {
+            color: var(--accent-purple);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .jumpscare-demo {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+
+        .jumpscare-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0;
+            transition: opacity 0.1s;
+            z-index: 2;
+        }
+
+        .jumpscare-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Навигация по статьям */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 60px 0;
+            padding: 30px 0;
+            border-top: 2px solid rgba(220, 38, 38, 0.2);
+            border-bottom: 2px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-light);
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            width: 48%;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover {
+            border-color: var(--accent-red);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn.prev {
+            text-align: left;
+        }
+
+        .nav-btn.next {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .nav-btn i {
+            color: var(--accent-red);
+            font-size: 20px;
+        }
+
+        /* Автор */
+        .author-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: var(--shadow);
+            border: 1px solid transparent;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .author-card:hover {
+            border-color: var(--accent-red);
+            transform: translateY(-5px);
+        }
+
+        .author-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--gradient-blood);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin-top: 0;
+            color: var(--text-light);
+        }
+
+        .author-bio {
+            color: var(--text-gray);
+            margin-top: 10px;
+        }
+
+        /* Похожие статьи */
+        .related-articles {
+            margin: 80px 0 40px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            backdrop-filter: blur(10px);
+        }
+
+        .related-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-red);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .related-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .related-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-blood);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text-light);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+            border-top: 1px solid rgba(220, 38, 38, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-red), transparent);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--accent-red);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--accent-red);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-red);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-red);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(220, 38, 38, 0.2);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .article-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            .author-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .breadcrumbs {
+                padding: 100px 0 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .flicker {
+            animation: flicker 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 3s infinite;
+        }
+
+        /* Стили для кода */
+        .gdscript-keyword { color: #ff79c6; }
+        .gdscript-function { color: #50fa7b; }
+        .gdscript-string { color: #f1fa8c; }
+        .gdscript-comment { color: #6272a4; font-style: italic; }
+        .gdscript-number { color: #bd93f9; }
+        .gdscript-builtin { color: #8be9fd; }
+
+        /* Дополнительные стили для хоррора */
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            background: rgba(220, 38, 38, 0.2);
+            color: var(--text-light);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: var(--accent-red);
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: var(--text-gray);
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(220, 38, 38, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent-red);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(220, 38, 38, 0.5);
+        }
+
+        .sound-demo {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .sound-btn {
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 8px;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sound-btn:hover {
+            background: rgba(220, 38, 38, 0.2);
+            border-color: var(--accent-red);
+        }
+
+        .node-structure {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            line-height: 1.8;
+            color: var(--text-gray);
+        }
+
+        .node-structure .node {
+            margin-left: 20px;
+            position: relative;
+        }
+
+        .node-structure .node::before {
+            content: "├── ";
+            position: absolute;
+            left: -20px;
+            color: var(--accent-red);
+        }
+
+        .node-structure .node:last-child::before {
+            content: "└── ";
+        }
+
+        /* Стили для демо окружения */
+        .environment-demo {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            background: #000;
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .light-source {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: yellow;
+            box-shadow: 0 0 20px yellow;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .fog-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            z-index: 2;
+        }
+
+        /* Стили для демо саспенса */
+        .suspense-demo {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: #111;
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .suspense-object {
+            width: 50px;
+            height: 50px;
+            background: var(--accent-red);
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .heartbeat {
+            animation: heartbeat 1s infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Стили для демо внезапных звуков */
+        .sound-jumpscare {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: var(--radius);
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .sound-wave {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(220, 38, 38, 0.3);
+            animation: soundwave 2s infinite;
+        }
+
+        @keyframes soundwave {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(10); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="blog.html" class="nav-link active">Блог</a>
+                    <a href="index.html#about" class="nav-link">О нас</a>
+                    <a href="index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="index.html#plan" class="nav-link">Программа</a>
+                    <a href="index.html#projects" class="nav-link">Проекты</a>
+                    <a href="index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Главная</a>
+                <a href="blog.html" class="mobile-nav-link">Блог</a>
+                <a href="index.html#about" class="mobile-nav-link">О нас</a>
+                <a href="index.html#lessons" class="mobile-nav-link">Занятия</a>
+                <a href="index.html#plan" class="mobile-nav-link">Программа</a>
+                <a href="index.html#projects" class="mobile-nav-link">Проекты</a>
+                <a href="index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                <a href="index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Хлебные крошки -->
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="index.html">Главная</a>
+                <span>›</span>
+                <a href="blog.html">Блог</a>
+                <span>›</span>
+                <span>Как сделать хоррор в Godot: лайфхаки и советы</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент статьи -->
+    <main class="container">
+        <article class="article-content fade-in">
+            <h1 class="horror-title">Как сделать хоррор в Godot: лайфхаки и советы</h1>
+
+            <div class="article-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar"></i>
+                    <span>1 апреля 2026</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-clock"></i>
+                    <span>30 мин чтения</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-user"></i>
+                    <span>Мария Соколова</span>
+                </div>
+                <div class="article-tag">Хоррор</div>
+                <div class="article-tag">Атмосфера</div>
+                <div class="article-tag">3D</div>
+                <div class="article-tag">Для начинающих</div>
+            </div>
+
+            <p>Создание хоррор-игры — это искусство управления эмоциями игрока. В этом руководстве мы разберем все техники, которые превратят вашу игру на Godot в настоящий кошмар! От скримеров до психологического давления — обо всем по порядку.</p>
+
+            <blockquote>
+                "Самый страшный монстр — это тот, которого вы никогда не видите, но всегда чувствуете его присутствие."<br>
+                <em>— Классическое правило хоррор-геймдизайна</em>
+            </blockquote>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-ghost"></i>
+                    Интерактивная демонстрация: Простейший скример
+                </div>
+                <p>Нажмите на черный экран ниже. <strong>Внимание:</strong> демонстрация содержит внезапный звук и изображение!</p>
+                <div class="jumpscare-demo" id="jumpscareDemo">
+                    <div class="jumpscare-overlay">
+                        <i class="fas fa-skull-crossbones" style="font-size: 40px; margin-bottom: 15px;"></i>
+                        <h3 style="margin-bottom: 10px;">НАЖМИТЕ, ЧТОБЫ АКТИВИРОВАТЬ СКРИМЕР</h3>
+                        <p style="color: #94a3b8;">Громкость рекомендуется уменьшить</p>
+                    </div>
+                    <div class="jumpscare-image" id="jumpscareImage"></div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="resetJumpscare()">Сбросить скример</button>
+                    <button class="control-btn" onclick="toggleSound()">Выключить/включить звук</button>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Интенсивность скримера:</span>
+                        <span id="jumpscareIntensityValue">50%</span>
+                    </div>
+                    <input type="range" min="10" max="100" value="50" step="5" class="slider" id="jumpscareIntensity" oninput="updateJumpscareIntensity(this.value)">
+                </div>
+            </div>
+
+            <h2>Часть 1: Психология страха в играх</h2>
+            <p>Прежде чем писать код, нужно понять, КАК напугать игрока. Есть три основных типа страха в играх:</p>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-brain"></i>
+                    Типы страха в играх
+                </div>
+                <div class="example-visual" style="flex-direction: column; gap: 20px;">
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                        <div style="background: rgba(220, 38, 38, 0.2); padding: 15px; border-radius: var(--radius); border: 1px solid rgba(220, 38, 38, 0.3); min-width: 250px;">
+                            <h4 style="margin-top: 0; color: #f87171;"><i class="fas fa-bolt"></i> Внезапный страх (Jump Scare)</h4>
+                            <p>Короткий, интенсивный испуг. Эффективно, но быстро надоедает.</p>
+                        </div>
+                        <div style="background: rgba(124, 58, 237, 0.2); padding: 15px; border-radius: var(--radius); border: 1px solid rgba(124, 58, 237, 0.3); min-width: 250px;">
+                            <h4 style="margin-top: 0; color: #a78bfa;"><i class="fas fa-clock"></i> Саспенс (Ожидание)</h4>
+                            <p>Медленное нарастание напряжения. Игрок знает, что что-то случится, но не знает когда.</p>
+                        </div>
+                        <div style="background: rgba(30, 64, 175, 0.2); padding: 15px; border-radius: var(--radius); border: 1px solid rgba(30, 64, 175, 0.3); min-width: 250px;">
+                            <h4 style="margin-top: 0; color: #60a5fa;"><i class="fas fa-eye"></i> Психологический ужас</h4>
+                            <p>Чувство дискомфорта, беспомощности, нарушения реальности.</p>
+                        </div>
+                    </div>
+                    <div class="suspense-demo" id="suspenseDemo">
+                        <div class="suspense-object" id="suspenseObject"></div>
+                        <div style="text-align: center; z-index: 1;">
+                            <p>Наблюдайте за красным шаром. Он появится через случайное время...</p>
+                            <button class="control-btn" onclick="startSuspenseDemo()">Запустить демо саспенса</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Золотое правило хоррора</h4>
+                <p><strong>Показывайте меньше, чем подразумевайте.</strong> Мозг игрока сам дорисует самые страшные картины. Используйте звуки шагов за дверью, тени на стенах, шепот — но не показывайте источник сразу.</p>
+            </div>
+
+            <h2>Часть 2: Создание скримера (Jump Scare)</h2>
+            <p>Скример — самый простой, но эффективный способ напугать. Давайте создадим систему скримеров, которую можно переиспользовать в игре.</p>
+
+            <div class="node-structure">
+                <div>JumpScareManager (Node)</div>
+                <div class="node">AudioStreamPlayer (звук скримера)</div>
+                <div class="node">AnimationPlayer (анимация изображения)</div>
+                <div class="node">ColorRect (черный экран)</div>
+                <div class="node">TextureRect (изображение скримера)</div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Скрипт менеджера скримеров
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CanvasLayer
+
+# Настройки скримера
+@export var scare_images: Array[Texture2D] = []  # Массив страшных картинок
+@export var scare_sounds: Array[AudioStream] = []  # Массив страшных звуков
+@export var min_duration: float = 0.5  # Минимальная длительность
+@export var max_duration: float = 2.0  # Максимальная длительность
+
+# Ссылки на узлы
+@onready var black_screen = $ColorRect
+@onready var scare_image = $TextureRect
+@onready var audio_player = $AudioStreamPlayer
+@onready var animation_player = $AnimationPlayer
+
+# Переменные состояния
+var is_scaring = false
+var scare_queue = []
+
+func _ready():
+    # Скрываем всё при старте
+    black_screen.visible = false
+    scare_image.visible = false
+
+    # Настраиваем полноэкранный ColorRect
+    black_screen.color = Color(0, 0, 0, 0)
+    black_screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+func trigger_jump_scare(image_index: int = -1, sound_index: int = -1, duration: float = -1):
+    if is_scaring:
+        # Если уже происходит скример, ставим в очередь
+        scare_queue.append([image_index, sound_index, duration])
+        return
+
+    is_scaring = true
+
+    # Выбираем случайное изображение, если не указано
+    var actual_image_index = image_index
+    if actual_image_index == -1 and scare_images.size() > 0:
+        actual_image_index = randi() % scare_images.size()
+
+    # Выбираем случайный звук, если не указан
+    var actual_sound_index = sound_index
+    if actual_sound_index == -1 and scare_sounds.size() > 0:
+        actual_sound_index = randi() % scare_sounds.size()
+
+    # Определяем длительность
+    var actual_duration = duration
+    if actual_duration == -1:
+        actual_duration = randf_range(min_duration, max_duration)
+
+    # Запускаем скример
+    _play_scare_sequence(actual_image_index, actual_sound_index, actual_duration)
+
+func _play_scare_sequence(image_index: int, sound_index: int, duration: float):
+    # 1. Останавливаем игру (опционально)
+    get_tree().paused = true
+
+    # 2. Показываем черный экран
+    black_screen.visible = true
+    black_screen.color = Color(0, 0, 0, 1)
+
+    # 3. Устанавливаем изображение
+    if image_index >= 0 and image_index < scare_images.size():
+        scare_image.texture = scare_images[image_index]
+        scare_image.visible = true
+
+        # Анимация появления (резкое увеличение)
+        animation_player.play("scare_pop")
+
+    # 4. Проигрываем звук
+    if sound_index >= 0 and sound_index < scare_sounds.size():
+        audio_player.stream = scare_sounds[sound_index]
+        audio_player.play()
+
+    # 5. Ждем указанное время
+    await get_tree().create_timer(duration).timeout
+
+    # 6. Плавно убираем скример
+    animation_player.play("fade_out")
+    await animation_player.animation_finished
+
+    # 7. Возвращаем игру
+    get_tree().paused = false
+
+    # 8. Скрываем всё
+    black_screen.visible = false
+    scare_image.visible = false
+    is_scaring = false
+
+    # 9. Проверяем очередь
+    if scare_queue.size() > 0:
+        var next_scare = scare_queue.pop_front()
+        trigger_jump_scare(next_scare[0], next_scare[1], next_scare[2])
+
+# Функция для активации скримера по условию (например, при открытии двери)
+func setup_door_jumpscare(door_node: Node3D, trigger_distance: float = 2.0):
+    door_node.connect("body_entered", Callable(self, "_on_door_entered").bind(door_node))
+
+func _on_door_entered(body, door):
+    if body.name == "Player":
+        # Проверяем расстояние
+        var distance = body.global_position.distance_to(door.global_position)
+        if distance <= 2.0:
+            # Запускаем скример с 30% вероятностью
+            if randf() < 0.3:
+                trigger_jump_scare()</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Анимации для скримера (AnimationPlayer)
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript"># Анимация "scare_pop" (резкое появление)
+# Длительность: 0.1 секунды
+# Ключевые кадры:
+# 0.0s: scale = Vector2(0.1, 0.1), modulate.a = 0
+# 0.05s: scale = Vector2(1.2, 1.2), modulate.a = 1
+# 0.1s: scale = Vector2(1.0, 1.0), modulate.a = 1
+
+# Анимация "fade_out" (плавное исчезновение)
+# Длительность: 0.5 секунды
+# Ключевые кадры:
+# 0.0s: modulate.a = 1
+# 0.5s: modulate.a = 0
+
+# Для черного экрана создаем отдельную анимацию "black_fade"
+# 0.0s: color.a = 1
+# 0.5s: color.a = 0</code></pre>
+            </div>
+
+            <div class="lifehack-box">
+                <h4><i class="fas fa-lightbulb"></i> Лайфхак: Умные скримеры</h4>
+                <p>1. <strong>Не злоупотребляйте</strong> — после 3-4 скримеров игрок привыкает<br>
+                2. <strong>Меняйте триггеры</strong> — зеркала, двери, темные углы, звуки<br>
+                3. <strong>Добавляйте вариации</strong> — разные картинки, звуки, длительность<br>
+                4. <strong>Используйте паузу</strong> — остановка игры усиливает эффект<br>
+                5. <strong>Следите за здоровьем игрока</strong> — не используйте скримеры, если у игрока мало здоровья</p>
+            </div>
+
+            <h2>Часть 3: Звуковой дизайн для хоррора</h2>
+            <p>Звук в хорроре важнее графики! Правильные звуки создают 70% атмосферы.</p>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-volume-up"></i>
+                    Демонстрация звуков хоррора
+                </div>
+                <p>Нажмите на кнопки, чтобы услышать разные типы страшных звуков:</p>
+                <div class="sound-demo">
+                    <button class="sound-btn" onclick="playHorrorSound('ambient')">
+                        <i class="fas fa-wind"></i> Атмосферный звук (шепот, ветер)
+                    </button>
+                    <button class="sound-btn" onclick="playHorrorSound('steps')">
+                        <i class="fas fa-shoe-prints"></i> Шаги в темноте
+                    </button>
+                    <button class="sound-btn" onclick="playHorrorSound('door')">
+                        <i class="fas fa-door-closed"></i> Скрип двери
+                    </button>
+                    <button class="sound-btn" onclick="playHorrorSound('jumpscare')">
+                        <i class="fas fa-bolt"></i> Звук скримера (резкий)
+                    </button>
+                </div>
+                <div class="sound-jumpscare" onclick="playRandomScareSound()">
+                    <div class="sound-wave"></div>
+                    <div style="text-align: center;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p>Кликните для внезапного звука</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        3D звуковая система для хоррора
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends Node3D
+
+# Настройки звуков
+@export var ambient_sounds: Array[AudioStream] = []
+@export var random_sounds: Array[AudioStream] = []
+@export var monster_sounds: Array[AudioStream] = []
+
+# Интервалы воспроизведения
+@export var min_ambient_interval: float = 10.0
+@export var max_ambient_interval: float = 30.0
+@export var min_random_interval: float = 15.0
+@export var max_random_interval: float = 45.0
+
+# Ссылки на узлы
+@onready var ambient_player = $AmbientAudio
+@onready var random_player = $RandomAudio
+@onready var monster_player = $MonsterAudio
+@onready var reverb_area = $ReverbArea
+
+# Таймеры
+var ambient_timer: Timer
+var random_timer: Timer
+
+func _ready():
+    # Настраиваем реверберацию для области
+    reverb_area.reverb_bus = "Reverb"
+    reverb_area.reverb_uniformity = 0.8
+    reverb_area.reverb_hf_reference = 5000.0
+
+    # Создаем таймеры
+    ambient_timer = Timer.new()
+    ambient_timer.wait_time = randf_range(min_ambient_interval, max_ambient_interval)
+    ambient_timer.timeout.connect(_play_ambient_sound)
+    add_child(ambient_timer)
+    ambient_timer.start()
+
+    random_timer = Timer.new()
+    random_timer.wait_time = randf_range(min_random_interval, max_random_interval)
+    random_timer.timeout.connect(_play_random_sound)
+    add_child(random_timer)
+    random_timer.start()
+
+    # Настраиваем 3D аудио
+    _setup_3d_audio()
+
+func _setup_3d_audio():
+    # Настройки для AudioStreamPlayer3D
+    ambient_player.max_distance = 20.0
+    ambient_player.unit_size = 5.0
+    ambient_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_LOGARITHMIC
+
+    random_player.max_distance = 15.0
+    random_player.unit_size = 3.0
+    random_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_LOGARITHMIC
+
+    monster_player.max_distance = 30.0
+    monster_player.unit_size = 8.0
+    monster_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_LOGARITHMIC
+
+func _play_ambient_sound():
+    if ambient_sounds.size() == 0:
+        return
+
+    # Выбираем случайный звук
+    var sound = ambient_sounds[randi() % ambient_sounds.size()]
+    ambient_player.stream = sound
+
+    # Случайная громкость и высота тона
+    ambient_player.volume_db = randf_range(-10, -5)
+    ambient_player.pitch_scale = randf_range(0.8, 1.2)
+
+    # Проигрываем
+    ambient_player.play()
+
+    # Перезапускаем таймер
+    ambient_timer.wait_time = randf_range(min_ambient_interval, max_ambient_interval)
+    ambient_timer.start()
+
+func _play_random_sound():
+    if random_sounds.size() == 0:
+        return
+
+    # 30% вероятность проигрывания звука
+    if randf() > 0.3:
+        random_timer.wait_time = randf_range(min_random_interval, max_random_interval)
+        random_timer.start()
+        return
+
+    var sound = random_sounds[randi() % random_sounds.size()]
+    random_player.stream = sound
+
+    # Случайная позиция вокруг игрока
+    var player = get_node_or_null("/root/Game/Player")
+    if player:
+        var angle = randf() * 2 * PI
+        var distance = randf_range(5.0, 15.0)
+        random_player.global_position = player.global_position + Vector3(
+            cos(angle) * distance,
+            0,
+            sin(angle) * distance
+        )
+
+    random_player.volume_db = randf_range(-15, -10)
+    random_player.pitch_scale = randf_range(0.7, 1.3)
+    random_player.play()
+
+    random_timer.wait_time = randf_range(min_random_interval, max_random_interval)
+    random_timer.start()
+
+# Функция для воспроизведения звука монстра
+func play_monster_sound(distance: float = 10.0):
+    if monster_sounds.size() == 0:
+        return
+
+    var sound = monster_sounds[randi() % monster_sounds.size()]
+    monster_player.stream = sound
+
+    # Громкость зависит от расстояния
+    monster_player.volume_db = lerp(-5, -20, distance / 30.0)
+    monster_player.pitch_scale = randf_range(0.9, 1.1)
+    monster_player.play()
+
+# Функция для шепота за спиной
+func play_whisper_behind_player():
+    var player = get_node_or_null("/root/Game/Player")
+    if not player:
+        return
+
+    # Позиционируем звук за спиной игрока
+    var behind_offset = -player.global_transform.basis.z * 2.0
+    random_player.global_position = player.global_position + behind_offset
+
+    var whisper_sounds = [s for s in random_sounds if "whisper" in s.resource_path]
+    if whisper_sounds.size() > 0:
+        random_player.stream = whisper_sounds[0]
+        random_player.volume_db = -15
+        random_player.pitch_scale = randf_range(0.8, 1.0)
+        random_player.play()</code></pre>
+            </div>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> Важно: Слои звуков</h4>
+                <p>Разделите звуки на слои, чтобы они не перекрывали друг друга:<br>
+                1. <strong>Фоновые звуки</strong> — ветер, скрип здания, отдаленные звуки<br>
+                2. <strong>Атмосферные звуки</strong> — капли воды, шаги, скрипы<br>
+                3. <strong>Звуки окружения</strong> — двери, предметы<br>
+                4. <strong>Звуки монстров</strong> — рычание, шаги, голоса<br>
+                5. <strong>Музыка</strong> — тонкий саундтрек, нарастающий в напряженные моменты</p>
+            </div>
+
+            <h2>Часть 4: Свет и атмосфера</h2>
+            <p>Свет в хорроре — ваш главный инструмент. Темнота скрывает, а свет — обманывает.</p>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-lightbulb"></i>
+                    Демонстрация освещения в хорроре
+                </div>
+                <div class="environment-demo" id="lightingDemo">
+                    <div class="light-source" id="lightSource"></div>
+                    <div class="fog-overlay"></div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="toggleFlicker()">Включить мерцание</button>
+                    <button class="control-btn" onclick="changeLightColor('white')">Белый свет</button>
+                    <button class="control-btn" onclick="changeLightColor('red')">Красный свет</button>
+                    <button class="control-btn" onclick="changeLightColor('green')">Зеленый свет</button>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Интенсивность тумана:</span>
+                        <span id="fogIntensityValue">50%</span>
+                    </div>
+                    <input type="range" min="0" max="100" value="50" step="5" class="slider" id="fogIntensity" oninput="updateFogIntensity(this.value)">
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Динамическое освещение для хоррора
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends SpotLight3D
+
+# Настройки мерцания
+@export var flicker_enabled: bool = true
+@export var min_flicker_speed: float = 0.05
+@export var max_flicker_speed: float = 0.2
+@export var flicker_intensity: float = 0.3  # Насколько сильно меняется яркость
+
+# Настройки случайного выключения
+@export var random_blackout: bool = true
+@export var blackout_chance: float = 0.01  # Шанс выключения каждый кадр
+@export var min_blackout_time: float = 0.1
+@export var max_blackout_time: float = 2.0
+
+# Переменные состояния
+var base_energy: float
+var is_blackout: bool = false
+var blackout_timer: float = 0.0
+var flicker_timer: float = 0.0
+var next_flicker_time: float = 0.0
+
+func _ready():
+    # Сохраняем базовую яркость
+    base_energy = light_energy
+
+    # Устанавливаем случайное время до первого мерцания
+    next_flicker_time = randf_range(min_flicker_speed, max_flicker_speed)
+
+    # Настраиваем тени для страшного эффекта
+    shadow_enabled = true
+    shadow_bias = 0.1
+    shadow_normal_bias = 1.0
+
+func _process(delta):
+    if flicker_enabled and not is_blackout:
+        _update_flicker(delta)
+
+    if random_blackout:
+        _update_blackout(delta)
+
+func _update_flicker(delta):
+    flicker_timer += delta
+
+    if flicker_timer >= next_flicker_time:
+        # Мерцаем
+        var flicker_amount = randf_range(-flicker_intensity, flicker_intensity)
+        light_energy = clamp(base_energy + flicker_amount, 0.1, base_energy * 2)
+
+        # Сбрасываем таймер
+        flicker_timer = 0
+        next_flicker_time = randf_range(min_flicker_speed, max_flicker_speed)
+    else:
+        # Плавно возвращаемся к базовой яркости
+        light_energy = lerp(light_energy, base_energy, delta * 5)
+
+func _update_blackout(delta):
+    if is_blackout:
+        blackout_timer -= delta
+        if blackout_timer <= 0:
+            # Включаем свет обратно
+            light_energy = base_energy
+            visible = true
+            is_blackout = false
+    else:
+        # Проверяем шанс выключения
+        if randf() < blackout_chance * delta:
+            _start_blackout()
+
+func _start_blackout():
+    is_blackout = true
+    blackout_timer = randf_range(min_blackout_time, max_blackout_time)
+    light_energy = 0
+    visible = false
+
+    # Проигрываем звук выключения света
+    var audio_player = get_node_or_null("AudioStreamPlayer3D")
+    if audio_player:
+        audio_player.play()
+
+# Функция для реактивации света после испуга игрока
+func scare_flicker(intensity: float = 2.0, duration: float = 1.0):
+    var tween = create_tween()
+
+    # Быстрое мерцание
+    tween.tween_property(self, "light_energy", base_energy * intensity, 0.05)
+    tween.tween_property(self, "light_energy", 0, 0.1)
+    tween.tween_property(self, "light_energy", base_energy * intensity, 0.05)
+    tween.tween_property(self, "light_energy", base_energy, duration * 0.8)
+
+# Настройка WorldEnvironment для хоррора
+func setup_horror_environment():
+    var env = get_node("/root/Game/WorldEnvironment")
+
+    # Настройки тумана
+    env.environment.fog_enabled = true
+    env.environment.fog_depth_begin = 5.0
+    env.environment.fog_depth_end = 20.0
+    env.environment.fog_density = 0.05
+    env.environment.fog_color = Color(0.05, 0.02, 0.02)  # Темно-красный туман
+
+    # Настройки тонального отображения
+    env.environment.tonemap_mode = Environment.TONE_MAPPER_ACES
+    env.environment.tonemap_exposure = 0.8  # Немного темнее
+
+    # Настройки SSAO (затенение)
+    env.environment.ssao_enabled = true
+    env.environment.ssao_intensity = 2.0
+    env.environment.ssao_radius = 1.0
+
+    # Настройки свечения
+    env.environment.glow_enabled = true
+    env.environment.glow_intensity = 0.3
+    env.environment.glow_strength = 0.8
+    env.environment.glow_bloom = 0.1</code></pre>
+            </div>
+
+            <h2>Часть 5: Психологические приемы</h2>
+            <p>Самый страшный хоррор играет с разумом игрока, а не с его глазами.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Система психологического давления
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends Node
+
+# Настройки психологического давления
+@export var max_sanity: float = 100.0
+@export var sanity_drain_rate: float = 0.1  # Потеря рассудка в секунду
+@export var sanity_recovery_rate: float = 0.5  # Восстановление в безопасных зонах
+
+# События, влияющие на рассудок
+@export var sanity_events = {
+    "monster_sighted": -20.0,
+    "jump_scare": -15.0,
+    "whisper_heard": -5.0,
+    "light_flicker": -2.0,
+    "in_darkness": -0.5,  # В секунду
+    "in_safe_zone": 1.0,  # В секунду
+}
+
+# Эффекты при разном уровне рассудка
+@export var sanity_effects = {
+    70: {"visual_shake": 0.1, "sound_pitch": 0.95, "whisper_chance": 0.01},
+    50: {"visual_shake": 0.2, "sound_pitch": 0.9, "whisper_chance": 0.03, "shadow_figures": true},
+    30: {"visual_shake": 0.3, "sound_pitch": 0.85, "whisper_chance": 0.05, "shadow_figures": true, "fake_sounds": true},
+    10: {"visual_shake": 0.5, "sound_pitch": 0.8, "whisper_chance": 0.1, "hallucinations": true}
+}
+
+# Ссылки на узлы
+@onready var player = get_node("/root/Game/Player")
+@onready var camera = player.get_node("Camera3D")
+
+# Переменные состояния
+var current_sanity: float
+var is_in_darkness: bool = false
+var is_in_safe_zone: bool = false
+var current_effects = {}
+
+func _ready():
+    current_sanity = max_sanity
+    _start_sanity_timer()
+
+func _start_sanity_timer():
+    # Таймер для обновления рассудка
+    var timer = Timer.new()
+    timer.wait_time = 0.1  # Обновляем 10 раз в секунду
+    timer.timeout.connect(_update_sanity)
+    add_child(timer)
+    timer.start()
+
+func _update_sanity():
+    # Базовая потеря рассудка
+    var drain = sanity_drain_rate * 0.1
+
+    # Модификаторы
+    if is_in_darkness:
+        drain += sanity_events["in_darkness"] * 0.1
+
+    if is_in_safe_zone:
+        drain -= sanity_events["in_safe_zone"] * 0.1
+
+    # Применяем изменения
+    current_sanity = clamp(current_sanity + drain, 0, max_sanity)
+
+    # Обновляем эффекты
+    _update_sanity_effects()
+
+    # Обновляем UI
+    _update_sanity_ui()
+
+func apply_sanity_event(event_name: String):
+    if sanity_events.has(event_name):
+        var change = sanity_events[event_name]
+        current_sanity = clamp(current_sanity + change, 0, max_sanity)
+
+        # Визуальная обратная связь
+        if change < 0:
+            _play_sanity_loss_effect()
+
+func _update_sanity_effects():
+    var new_effects = {}
+
+    # Определяем текущие эффекты на основе уровня рассудка
+    for threshold in sanity_effects.keys():
+        if current_sanity <= threshold:
+            new_effects.merge(sanity_effects[threshold], true)
+
+    # Применяем новые эффекты
+    _apply_effects_difference(current_effects, new_effects)
+    current_effects = new_effects
+
+func _apply_effects_difference(old_effects, new_effects):
+    # Применяем визуальные эффекты
+    if new_effects.get("visual_shake", 0) != old_effects.get("visual_shake", 0):
+        _set_camera_shake(new_effects.get("visual_shake", 0))
+
+    # Применяем звуковые эффекты
+    if new_effects.get("sound_pitch", 1) != old_effects.get("sound_pitch", 1):
+        _set_global_pitch(new_effects.get("sound_pitch", 1))
+
+    # Включаем/выключаем тени
+    if new_effects.get("shadow_figures", false) and not old_effects.get("shadow_figures", false):
+        _enable_shadow_figures()
+
+    # Включаем/выключаем галлюцинации
+    if new_effects.get("hallucinations", false) and not old_effects.get("hallucinations", false):
+        _enable_hallucinations()
+
+    # Проверяем случайные шепоты
+    if new_effects.get("whisper_chance", 0) > 0:
+        if randf() < new_effects["whisper_chance"]:
+            _play_random_whisper()
+
+func _set_camera_shake(intensity: float):
+    # Добавляем тряску камеры
+    if camera.has_method("add_trauma"):
+        camera.add_trauma(intensity)
+
+func _set_global_pitch(pitch: float):
+    # Изменяем высоту всех звуков
+    AudioServer.set_bus_effect_enabled(0, 0, true)  # PitchShift эффект
+    var pitch_shift = AudioServer.get_bus_effect(0, 0)
+    pitch_shift.pitch_scale = pitch
+
+func _enable_shadow_figures():
+    # Спавним временные тени в периферийном зрении
+    var shadow_scene = preload("res://entities/shadow_figure.tscn")
+
+    for i in range(3):
+        var shadow = shadow_scene.instantiate()
+
+        # Позиция на периферии экрана
+        var angle = randf() * 2 * PI
+        var distance = randf_range(5.0, 10.0)
+        var offset = Vector3(cos(angle) * distance, 0, sin(angle) * distance)
+
+        shadow.global_position = player.global_position + offset
+        shadow.look_at(player.global_position, Vector3.UP)
+
+        get_parent().add_child(shadow)
+
+        # Автоудаление через время
+        await get_tree().create_timer(randf_range(1.0, 3.0)).timeout
+        if is_instance_valid(shadow):
+            shadow.queue_free()
+
+func _enable_hallucinations():
+    # Запускаем различные галлюцинации
+    var hallucination_timer = Timer.new()
+    hallucination_timer.wait_time = randf_range(5.0, 15.0)
+    hallucination_timer.timeout.connect(_trigger_hallucination)
+    add_child(hallucination_timer)
+    hallucination_timer.start()
+
+func _trigger_hallucination():
+    var hallucinations = [
+        "_hallucination_fake_monster",
+        "_hallucination_mirror",
+        "_hallucination_blood_walls",
+        "_hallucination_whispers"
+    ]
+
+    var chosen = hallucinations[randi() % hallucinations.size()]
+    call(chosen)
+
+func _hallucination_fake_monster():
+    # Создаем фантомного монстра
+    var monster_scene = preload("res://entities/monster.tscn")
+    var fake_monster = monster_scene.instantiate()
+
+    fake_monster.global_position = player.global_position + player.global_transform.basis.z * -3.0
+
+    get_parent().add_child(fake_monster)
+
+    # Исчезает через 2 секунды
+    await get_tree().create_timer(2.0).timeout
+    if is_instance_valid(fake_monster):
+        # Эффект растворения
+        var tween = create_tween()
+        tween.tween_property(fake_monster, "modulate:a", 0, 0.5)
+        tween.tween_callback(fake_monster.queue_free)
+
+func _play_sanity_loss_effect():
+    # Визуальный эффект при потере рассудка
+    var screen_effect = ColorRect.new()
+    screen_effect.color = Color(1, 0, 0, 0.3)
+    screen_effect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+    add_child(screen_effect)
+
+    # Исчезает через 0.3 секунды
+    var tween = create_tween()
+    tween.tween_property(screen_effect, "color:a", 0, 0.3)
+    tween.tween_callback(screen_effect.queue_free)
+
+func _update_sanity_ui():
+    # Обновляем UI рассудка
+    var ui = get_node_or_null("/root/Game/UI/SanityBar")
+    if ui:
+        ui.value = (current_sanity / max_sanity) * 100</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> 5 психологических приемов для хоррора</h4>
+                <p>1. <strong>Нарушение ожиданий</strong> — дверь, которая должна открываться, внезапно заклинивает<br>
+                2. <strong>Периферийные видения</strong> — тени, которые исчезают, когда игрок смотрит прямо<br>
+                3. <strong>Изменение окружения</strong> — предметы, которые перемещаются, когда игрок не смотрит<br>
+                4. <strong>Звуковые галлюцинации</strong> — шепот имени игрока, детский смех<br>
+                5. <strong>Нарушение игровых правил</strong> — сохранения, которые не работают, карта, которая меняется</p>
+            </div>
+
+            <h2>Часть 6: Создание монстров и врагов</h2>
+            <p>Монстр в хорроре должен быть страшным даже когда его не видно.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Умный монстр для хоррора
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody3D
+
+# Состояния монстра
+enum State { HIDDEN, STALKING, CHASING, ATTACKING, COOLDOWN }
+
+# Настройки поведения
+@export var sight_range: float = 15.0
+@export var chase_speed: float = 4.0
+@export var stalk_speed: float = 1.5
+@export var attack_range: float = 2.0
+@export var attack_cooldown: float = 3.0
+@export var hidden_chance: float = 0.7  # Шанс остаться скрытым при обнаружении
+
+# Ссылки
+@onready var player = get_node("/root/Game/Player")
+@onready var nav_agent = $NavigationAgent3D
+@onready var audio_player = $AudioStreamPlayer3D
+@onready var visibility_check_timer = $VisibilityCheckTimer
+
+# Переменные
+var current_state = State.HIDDEN
+var last_known_position: Vector3
+var is_visible_to_player = false
+var stalk_points = []
+var current_stalk_index = 0
+
+func _ready():
+    # Настраиваем таймер проверки видимости
+    visibility_check_timer.wait_time = 0.5
+    visibility_check_timer.timeout.connect(_check_visibility)
+    visibility_check_timer.start()
+
+    # Генерируем точки для скрытного перемещения
+    _generate_stalk_points()
+
+    # Начинаем скрытно
+    _enter_hidden_state()
+
+func _physics_process(delta):
+    match current_state:
+        State.HIDDEN:
+            _update_hidden(delta)
+        State.STALKING:
+            _update_stalking(delta)
+        State.CHASING:
+            _update_chasing(delta)
+        State.ATTACKING:
+            _update_attacking(delta)
+        State.COOLDOWN:
+            _update_cooldown(delta)
+
+    move_and_slide()
+
+func _enter_hidden_state():
+    # Монстр невидим и неактивен
+    visible = false
+    $CollisionShape3D.disabled = true
+
+    # Ждем случайное время перед появлением
+    var wait_time = randf_range(10.0, 30.0)
+    await get_tree().create_timer(wait_time).timeout
+
+    # Решаем, появиться или остаться скрытым
+    if randf() > 0.3:  # 70% chance to appear
+        _enter_stalking_state()
+    else:
+        _enter_hidden_state()  # Остаемся скрытыми
+
+func _enter_stalking_state():
+    current_state = State.STALKING
+    visible = true
+    $CollisionShape3D.disabled = false
+
+    # Выбираем случайную точку для скрытного перемещения
+    if stalk_points.size() > 0:
+        current_stalk_index = randi() % stalk_points.size()
+        nav_agent.target_position = stalk_points[current_stalk_index]
+
+    # Тихие звуки
+    _play_stalk_sound()
+
+func _update_stalking(delta):
+    # Двигаемся к точке скрытного перемещения
+    var next_point = nav_agent.get_next_path_position()
+    var direction = (next_point - global_position).normalized()
+
+    velocity = direction * stalk_speed
+
+    # Плавный поворот
+    if direction.length() > 0:
+        look_at(global_position + direction, Vector3.UP)
+        rotation.x = 0
+
+    # Проверяем достижение точки
+    if global_position.distance_to(nav_agent.target_position) < 1.0:
+        # Выбираем следующую точку
+        current_stalk_index = (current_stalk_index + 1) % stalk_points.size()
+        nav_agent.target_position = stalk_points[current_stalk_index]
+
+        # Иногда возвращаемся в скрытое состояние
+        if randf() < 0.2:
+            _enter_hidden_state()
+
+    # Проверяем видимость игроку
+    if is_visible_to_player:
+        # Решаем, перейти в погоню или испугаться и скрыться
+        if randf() > hidden_chance:
+            _enter_chasing_state()
+        else:
+            # Испугался и скрылся
+            _play_scare_sound()
+            _enter_hidden_state()
+
+func _enter_chasing_state():
+    current_state = State.CHASING
+    _play_chase_sound()
+
+    # Игрок нас увидел - начинаем погоню
+    last_known_position = player.global_position
+    nav_agent.target_position = last_known_position
+
+func _update_chasing(delta):
+    # Обновляем цель, если игрок переместился
+    if global_position.distance_to(player.global_position) > 1.0:
+        nav_agent.target_position = player.global_position
+
+    var next_point = nav_agent.get_next_path_position()
+    var direction = (next_point - global_position).normalized()
+
+    velocity = direction * chase_speed
+
+    # Резкий поворот к цели
+    if direction.length() > 0:
+        look_at(global_position + direction, Vector3.UP)
+        rotation.x = 0
+
+    # Проверяем дистанцию для атаки
+    if global_position.distance_to(player.global_position) <= attack_range:
+        _enter_attacking_state()
+
+    # Если потеряли игрока из виду
+    if not is_visible_to_player:
+        # Проверяем, давно ли видели
+        if global_position.distance_to(last_known_position) < 1.0:
+            # Возвращаемся к скрытному поведению
+            _enter_stalking_state()
+
+func _enter_attacking_state():
+    current_state = State.ATTACKING
+    velocity = Vector3.ZERO
+
+    # Проигрываем анимацию атаки
+    $AnimationPlayer.play("attack")
+
+    # Наносим урон игроку
+    if player.has_method("take_damage"):
+        player.take_damage(20)
+
+    # Звук атаки
+    _play_attack_sound()
+
+    # Переход в состояние перезарядки
+    await get_tree().create_timer(0.5).timeout
+    _enter_cooldown_state()
+
+func _enter_cooldown_state():
+    current_state = State.COOLDOWN
+
+    # Ждем перед следующей атакой
+    await get_tree().create_timer(attack_cooldown).timeout
+
+    # Возвращаемся к погоне
+    if global_position.distance_to(player.global_position) <= sight_range:
+        _enter_chasing_state()
+    else:
+        _enter_stalking_state()
+
+func _check_visibility():
+    # Проверяем, видит ли игрок монстра
+    var space_state = get_world_3d().direct_space_state
+    var query = PhysicsRayQueryParameters3D.create(
+        player.global_position,
+        global_position
+    )
+    query.exclude = [self]
+
+    var result = space_state.intersect_ray(query)
+
+    is_visible_to_player = result.is_empty()  # Если луч не встретил препятствий
+
+    # Если монстр виден игроку, обновляем последнюю известную позицию
+    if is_visible_to_player:
+        last_known_position = global_position
+
+func _generate_stalk_points():
+    # Генерируем точки для скрытного перемещения вокруг игрока
+    for i in range(10):
+        var angle = i * (2 * PI / 10)
+        var distance = randf_range(5.0, 10.0)
+        var point = Vector3(
+            cos(angle) * distance,
+            0,
+            sin(angle) * distance
+        )
+        stalk_points.append(point)
+
+# Звуковые функции
+func _play_stalk_sound():
+    # Тихие звуки при скрытном перемещении
+    audio_player.stream = preload("res://sounds/monster_stalk.wav")
+    audio_player.volume_db = -20
+    audio_player.pitch_scale = randf_range(0.8, 1.2)
+    audio_player.play()
+
+func _play_chase_sound():
+    # Громкие звуки при погоне
+    audio_player.stream = preload("res://sounds/monster_chase.wav")
+    audio_player.volume_db = -10
+    audio_player.pitch_scale = randf_range(0.9, 1.1)
+    audio_player.play()
+
+func _play_attack_sound():
+    # Звук атаки
+    audio_player.stream = preload("res://sounds/monster_attack.wav")
+    audio_player.volume_db = -5
+    audio_player.play()
+
+func _play_scare_sound():
+    # Звук, когда монстр пугается и убегает
+    audio_player.stream = preload("res://sounds/monster_scared.wav")
+    audio_player.volume_db = -15
+    audio_player.play()</code></pre>
+            </div>
+
+            <div class="lifehack-box">
+                <h4><i class="fas fa-lightbulb"></i> Лайфхаки для монстров</h4>
+                <p>1. <strong>Не показывайте полностью</strong> — только тень, силуэт, часть тела<br>
+                2. <strong>Используйте непредсказуемость</strong> — иногда монстр появляется, иногда нет<br>
+                3. <strong>Разные модели поведения</strong> — один монстр преследует, другой прячется<br>
+                4. <strong>Реакция на действия игрока</strong> — монстр реагирует на свет, звук<br>
+                5. <strong>Слабости</strong> — у каждого монстра должна быть слабость (свет, определенный звук)</p>
+            </div>
+
+            <h2>Часть 7: Оптимизация для хоррора</h2>
+            <p>Хоррор-игры должны работать плавно даже на слабых ПК — лаги убивают атмосферу.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Система Level of Detail (LOD) для хоррора
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends Node3D
+
+# Настройки LOD
+@export var lod_distances = [10.0, 20.0, 30.0]  # Дистанции для переключения LOD
+@export var update_interval: float = 0.5  # Как часто проверять расстояние
+
+# Модели для разных уровней детализации
+@export var lod_models: Array[Mesh] = []
+
+# Ссылки
+@onready var player = get_node("/root/Game/Player")
+@onready var mesh_instance = $MeshInstance3D
+
+# Текущий уровень детализации
+var current_lod = 0
+var lod_timer: Timer
+
+func _ready():
+    if lod_models.size() == 0:
+        return
+
+    # Устанавливаем самую детальную модель по умолчанию
+    mesh_instance.mesh = lod_models[0]
+
+    # Создаем таймер для обновления LOD
+    lod_timer = Timer.new()
+    lod_timer.wait_time = update_interval
+    lod_timer.timeout.connect(_update_lod)
+    add_child(lod_timer)
+    lod_timer.start()
+
+func _update_lod():
+    if not player or lod_models.size() <= 1:
+        return
+
+    # Вычисляем расстояние до игрока
+    var distance = global_position.distance_to(player.global_position)
+
+    # Определяем нужный уровень детализации
+    var new_lod = 0
+    for i in range(lod_distances.size()):
+        if distance > lod_distances[i]:
+            new_lod = i + 1
+
+    # Ограничиваем максимальный LOD
+    new_lod = min(new_lod, lod_models.size() - 1)
+
+    # Если уровень изменился - обновляем модель
+    if new_lod != current_lod:
+        current_lod = new_lod
+        mesh_instance.mesh = lod_models[current_lod]
+
+        # Для хоррора: при переключении на низкий LOD можно добавить эффект "исчезновения в темноте"
+        if new_lod == lod_models.size() - 1:  # Самый низкий LOD
+            _apply_low_lod_effect()
+
+func _apply_low_lod_effect():
+    # Эффект для объектов вдали - делаем их более темными и размытыми
+    var material = mesh_instance.get_surface_override_material(0)
+    if material:
+        var new_material = material.duplicate()
+        new_material.albedo_color = new_material.albedo_color.darkened(0.3)
+        mesh_instance.set_surface_override_material(0, new_material)
+
+# Динамическая загрузка для больших уровней
+func setup_dynamic_loading():
+    # Разделяем уровень на чанки
+    var chunks = []
+    var chunk_size = 20.0
+
+    # Создаем систему загрузки чанков
+    var loading_timer = Timer.new()
+    loading_timer.wait_time = 1.0
+    loading_timer.timeout.connect(_update_loaded_chunks)
+    add_child(loading_timer)
+    loading_timer.start()
+
+func _update_loaded_chunks():
+    var player_chunk = _get_chunk_for_position(player.global_position)
+
+    # Загружаем чанки вокруг игрока
+    var chunks_to_load = _get_chunks_around(player_chunk, 2)
+
+    # Выгружаем далекие чанки
+    _unload_distant_chunks(player_chunk)
+
+func _get_chunk_for_position(pos: Vector3) -> Vector3:
+    var chunk_size = 20.0
+    return Vector3(
+        floor(pos.x / chunk_size),
+        floor(pos.y / chunk_size),
+        floor(pos.z / chunk_size)
+    ) * chunk_size</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Оптимизация для хоррора</h4>
+                <p>1. <strong>Используйте темноту</strong> — в темных областях можно снизить детализацию<br>
+                2. <strong>Туман как оптимизация</strong> — скрывает далекие объекты<br>
+                3. <strong>Динамические источники света</strong> — только там, где нужно<br>
+                4. <strong>Объединяйте меши</strong> — меньше draw calls<br>
+                5. <strong>Используйте импостеры</strong> — для далеких объектов</p>
+            </div>
+
+            <h2>Заключение: 10 золотых правил хоррор-геймдизайна</h2>
+            <p>Подведем итоги и создадим чек-лист для вашей хоррор-игры:</p>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-checklist"></i>
+                    Чек-лист хоррор-игры
+                </div>
+                <div class="example-visual" style="flex-direction: column; align-items: flex-start; text-align: left;">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check1">
+                        <label for="check1"><strong>Темнота и ограниченный обзор</strong> — игрок не должен видеть слишком много</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check2">
+                        <label for="check2"><strong>Атмосферный звук</strong> — больше звуков, чем визуальных эффектов</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check3">
+                        <label for="check3"><strong>Ощущение беспомощности</strong> — ограниченные ресурсы, слабое оружие</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check4">
+                        <label for="check4"><strong>Психологические эффекты</strong> — галлюцинации, нарушение реальности</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check5">
+                        <label for="check5"><strong>Умные враги</strong> — непредсказуемые, с разным поведением</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check6">
+                        <label for="check6"><strong>Саспенс > Скримеры</strong> — напряжение важнее внезапных испугов</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check7">
+                        <label for="check7"><strong>Изоляция</strong> — игрок должен чувствовать себя одиноко</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check8">
+                        <label for="check8"><strong>История через окружение</strong> — записки, дневники, следы борьбы</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <input type="checkbox" id="check9">
+                        <label for="check9"><strong>Моральные выборы</strong> — решения с последствиями</label>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <input type="checkbox" id="check10">
+                        <label for="check10"><strong>Оптимизация</strong> — хоррор не прощает лагов и вылетов</label>
+                    </div>
+                </div>
+                <button class="control-btn" onclick="checkAll()">Отметить все</button>
+                <button class="control-btn" onclick="uncheckAll()">Снять все</button>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-rocket"></i> Что делать дальше?</h4>
+                <p>1. <strong>Начните с малого</strong> — одна комната, один монстр, 10 минут геймплея<br>
+                2. <strong>Тестируйте на друзьях</strong> — наблюдайте за их реакцией<br>
+                3. <strong>Собирайте обратную связь</strong> — что напугало, что не сработало<br>
+                4. <strong>Итерируйте</strong> — улучшайте то, что работает, удаляйте то, что нет<br>
+                5. <strong>Изучайте классику</strong> — Silent Hill, Resident Evil, Amnesia, Outlast</p>
+            </div>
+
+            <!-- Автор -->
+            <div class="author-card fade-in">
+                <div class="author-avatar">
+                    МС
+                </div>
+                <div class="author-info">
+                    <h4>Об авторе</h4>
+                    <p><strong>Мария Соколова</strong> — геймдизайнер и преподаватель школы DOT, специализируется на нарративном дизайне и хоррор-играх. Автор курса "Психология в игровом дизайне" и нескольких инди-хорроров.</p>
+                    <p class="author-bio">Убеждена, что хороший хоррор — это не про кровь и кишки, а про напряжение и психологическое давление.</p>
+                </div>
+            </div>
+
+            <!-- Навигация по статьям -->
+            <div class="article-navigation fade-in">
+                <a href="#" class="nav-btn prev">
+                    <i class="fas fa-arrow-left"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-gray);">Предыдущая статья</div>
+                        <div style="font-weight: 600;">Преследование врагами в Godot: полное руководство</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-btn next">
+                    <i class="fas fa-arrow-right"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-gray);">Следующая статья</div>
+                        <div style="font-weight: 600;">Создание атмосферных RPG в Godot</div>
+                    </div>
+                </a>
+            </div>
+        </article>
+
+        <!-- Похожие статьи -->
+        <section class="related-articles fade-in">
+            <h2>Похожие статьи</h2>
+            <div class="related-grid">
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Атмосфера</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Создание атмосферных локаций в Godot</h3>
+                        <p>Как сделать уровни, которые рассказывают историю без слов</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1552820728-8b83bb6b773f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Звук</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Продвинутый звуковой дизайн в Godot</h3>
+                        <p>3D звук, реверберация, динамическое микширование</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Оптимизация</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Оптимизация 3D игр для слабых ПК</h3>
+                        <p>Как сделать игру страшной и плавной одновременно</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. Мы помогаем создавать игры с 2023 года. Блог DOT — это собрание полезных материалов для начинающих и продвинутых разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Хоррор</a></li>
+                        <li><a href="#">Атмосфера</a></li>
+                        <li><a href="#">Звуковой дизайн</a></li>
+                        <li><a href="#">3D графика</a></li>
+                        <li><a href="#">Психология игр</a></li>
+                        <li><a href="#">Для начинающих</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        // Интерактивные демонстрации для хоррора
+
+        // Демонстрация 1: Скример
+        let jumpscareActive = false;
+        let soundEnabled = true;
+        let jumpscareIntensity = 50;
+
+        document.getElementById('jumpscareDemo').addEventListener('click', function() {
+            if (jumpscareActive) return;
+
+            jumpscareActive = true;
+            const overlay = this.querySelector('.jumpscare-overlay');
+            const image = document.getElementById('jumpscareImage');
+
+            // Скрываем overlay
+            overlay.style.opacity = '0';
+
+            // Устанавливаем случайное страшное изображение
+            const scaryImages = [
+                'linear-gradient(45deg, #000 0%, #222 100%)',
+                'radial-gradient(circle, #dc2626 0%, #450a0a 100%)',
+                'linear-gradient(135deg, #0f172a 0%, #7f1d1d 100%)'
+            ];
+
+            const randomImage = scaryImages[Math.floor(Math.random() * scaryImages.length)];
+            image.style.background = randomImage;
+
+            // Показываем изображение с эффектом
+            image.style.opacity = '1';
+            image.style.transform = 'scale(' + (1 + jumpscareIntensity / 100) + ')';
+
+            // Проигрываем звук
+            if (soundEnabled) {
+                playScareSound();
+            }
+
+            // Через 0.5 секунды скрываем
+            setTimeout(() => {
+                image.style.opacity = '0';
+                image.style.transform = 'scale(1)';
+
+                // Через еще 0.3 секунды показываем overlay
+                setTimeout(() => {
+                    overlay.style.opacity = '1';
+                    jumpscareActive = false;
+                }, 300);
+            }, 500);
+        });
+
+        function resetJumpscare() {
+            const overlay = document.querySelector('.jumpscare-overlay');
+            const image = document.getElementById('jumpscareImage');
+
+            overlay.style.opacity = '1';
+            image.style.opacity = '0';
+            jumpscareActive = false;
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.querySelector('[onclick="toggleSound()"]');
+            btn.textContent = soundEnabled ? 'Выключить звук' : 'Включить звук';
+        }
+
+        function updateJumpscareIntensity(value) {
+            jumpscareIntensity = parseInt(value);
+            document.getElementById('jumpscareIntensityValue').textContent = value + '%';
+        }
+
+        function playScareSound() {
+            // Имитация страшного звука
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // Демонстрация 2: Саспенс
+        function startSuspenseDemo() {
+            const suspenseObject = document.getElementById('suspenseObject');
+            suspenseObject.style.opacity = '0';
+
+            // Случайное время появления (от 2 до 5 секунд)
+            const delay = Math.random() * 3000 + 2000;
+
+            setTimeout(() => {
+                suspenseObject.style.opacity = '1';
+                suspenseObject.classList.add('heartbeat');
+
+                // Через 2 секунды исчезаем
+                setTimeout(() => {
+                    suspenseObject.style.opacity = '0';
+                    suspenseObject.classList.remove('heartbeat');
+                }, 2000);
+            }, delay);
+        }
+
+        // Демонстрация 3: Звуки хоррора
+        function playHorrorSound(type) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            switch(type) {
+                case 'ambient':
+                    // Атмосферный звук (низкий гул)
+                    playLowHum(audioContext);
+                    break;
+                case 'steps':
+                    // Шаги
+                    playFootsteps(audioContext);
+                    break;
+                case 'door':
+                    // Скрип двери
+                    playDoorCreak(audioContext);
+                    break;
+                case 'jumpscare':
+                    // Звук скримера
+                    playScareSound();
+                    break;
+            }
+        }
+
+        function playLowHum(audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(80, audioContext.currentTime);
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+
+            oscillator.start();
+
+            // Плавное изменение частоты
+            setTimeout(() => {
+                oscillator.frequency.linearRampToValueAtTime(60, audioContext.currentTime + 2);
+            }, 1000);
+
+            // Останавливаем через 3 секунды
+            setTimeout(() => {
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1);
+                setTimeout(() => oscillator.stop(), 1000);
+            }, 3000);
+        }
+
+        function playFootsteps(audioContext) {
+            // Имитация 3 шагов
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+
+                    gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.3);
+                }, i * 500);
+            }
+        }
+
+        function playDoorCreak(audioContext) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(50, audioContext.currentTime + 1.5);
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 1.5);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 1.5);
+        }
+
+        function playRandomScareSound() {
+            const sounds = ['ambient', 'steps', 'door', 'jumpscare'];
+            const randomSound = sounds[Math.floor(Math.random() * sounds.length)];
+            playHorrorSound(randomSound);
+        }
+
+        // Демонстрация 4: Освещение
+        let flickerActive = false;
+        let flickerInterval;
+
+        function toggleFlicker() {
+            const light = document.getElementById('lightSource');
+            const btn = document.querySelector('[onclick="toggleFlicker()"]');
+
+            if (!flickerActive) {
+                flickerActive = true;
+                btn.textContent = 'Выключить мерцание';
+
+                flickerInterval = setInterval(() => {
+                    // Случайное изменение яркости
+                    const intensity = 0.5 + Math.random() * 0.5;
+                    light.style.opacity = intensity;
+                    light.style.transform = `translate(-50%, -50%) scale(${intensity})`;
+
+                    // Иногда полное выключение
+                    if (Math.random() < 0.1) {
+                        light.style.opacity = 0;
+                        setTimeout(() => {
+                            light.style.opacity = intensity;
+                        }, 100);
+                    }
+                }, 100);
+            } else {
+                flickerActive = false;
+                btn.textContent = 'Включить мерцание';
+                clearInterval(flickerInterval);
+                light.style.opacity = 1;
+                light.style.transform = 'translate(-50%, -50%) scale(1)';
+            }
+        }
+
+        function changeLightColor(color) {
+            const light = document.getElementById('lightSource');
+
+            switch(color) {
+                case 'white':
+                    light.style.background = 'yellow';
+                    light.style.boxShadow = '0 0 20px yellow';
+                    break;
+                case 'red':
+                    light.style.background = '#dc2626';
+                    light.style.boxShadow = '0 0 20px #dc2626';
+                    break;
+                case 'green':
+                    light.style.background = '#16a34a';
+                    light.style.boxShadow = '0 0 20px #16a34a';
+                    break;
+            }
+        }
+
+        function updateFogIntensity(value) {
+            const fog = document.querySelector('.fog-overlay');
+            const intensity = value / 100;
+
+            fog.style.opacity = intensity;
+            fog.style.backdropFilter = `blur(${intensity * 10}px)`;
+            document.getElementById('fogIntensityValue').textContent = value + '%';
+        }
+
+        // Демонстрация 5: Чек-лист
+        function checkAll() {
+            for (let i = 1; i <= 10; i++) {
+                document.getElementById('check' + i).checked = true;
+            }
+        }
+
+        function uncheckAll() {
+            for (let i = 1; i <= 10; i++) {
+                document.getElementById('check' + i).checked = false;
+            }
+        }
+
+        // Стандартный код для страницы
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codeBlock = this.closest('.code-block');
+                const code = codeBlock.querySelector('code').textContent;
+
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalText = this.textContent;
+                    this.textContent = 'Скопировано!';
+                    this.style.background = '#16a34a';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        window.addEventListener('load', () => {
+            document.querySelector('h1').style.opacity = '1';
+            document.querySelector('h1').style.transform = 'translateY(0)';
+            document.querySelector('h1').style.transition = 'opacity 1s ease, transform 1s ease';
+
+            // Добавляем мерцание к заголовку
+            setInterval(() => {
+                const title = document.querySelector('.horror-title');
+                title.style.textShadow = `0 0 ${10 + Math.random() * 10}px rgba(220, 38, 38, ${0.3 + Math.random() * 0.3})`;
+            }, 500);
+        });
+
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 15px 35px rgba(220, 38, 38, 0.2)';
+            });
+
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        });
+
+        // Добавляем случайные эффекты для атмосферы
+        setInterval(() => {
+            // Случайное мерцание некоторых элементов
+            if (Math.random() < 0.1) {
+                const elements = document.querySelectorAll('.tip-box, .warning-box, .lifehack-box');
+                const randomElement = elements[Math.floor(Math.random() * elements.length)];
+
+                randomElement.style.boxShadow = '0 0 20px rgba(220, 38, 38, 0.5)';
+                setTimeout(() => {
+                    randomElement.style.boxShadow = '';
+                }, 300);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

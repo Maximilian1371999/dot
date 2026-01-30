@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Как сделать простой FPS шутер в Godot для начинающих | Блог DOT</title>
+    <meta name="description" content="Пошаговое руководство для новичков: создаем простой шутер от первого лица в Godot с нуля. Учимся делать движение, вращение камеры и стрельбу.">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Фиолетово-синяя палитра DOT */
+            --primary-blue: #4338CA;
+            --secondary-blue: #4F46E5;
+            --accent-purple: #7C3AED;
+            --light-blue: #E0E7FF;
+            --dark-blue: #312E81;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gradient-main: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            --gradient-subtle: linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 100%);
+            --gradient-dark: linear-gradient(135deg, #312E81 0%, #4C1D95 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1), 0 2px 4px -1px rgba(67, 56, 202, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(67, 56, 202, 0.15);
+            --code-bg: #1a1b26;
+            --code-text: #c0caf5;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--dark-blue);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-blue);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-main);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 15px;
+            color: var(--dark-blue);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 25px 0 10px;
+            color: var(--primary-blue);
+        }
+
+        /* Шапка */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 20px rgba(67, 56, 202, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-purple);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            padding: 120px 0 40px;
+            background: var(--gradient-subtle);
+            margin-bottom: 40px;
+        }
+
+        .breadcrumbs-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .breadcrumbs a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--accent-purple);
+            text-decoration: underline;
+        }
+
+        /* Мета-информация статьи */
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--light-blue);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .meta-item i {
+            color: var(--primary-blue);
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Контент статьи */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 60px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 25px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        /* Блоки кода */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--code-text);
+        }
+
+        .code-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--code-text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-blue);
+        }
+
+        .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* Примеры */
+        .example {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid var(--light-blue);
+            box-shadow: var(--shadow);
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--secondary-blue);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tip-box h4 {
+            color: var(--secondary-blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .warning-box h4 {
+            color: #d97706;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Навигация по статьям */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 60px 0;
+            padding: 30px 0;
+            border-top: 2px solid var(--light-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            width: 48%;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn.prev {
+            text-align: left;
+        }
+
+        .nav-btn.next {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .nav-btn i {
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        /* Автор */
+        .author-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .author-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-5px);
+        }
+
+        .author-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        .author-bio {
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+
+        /* Похожие статьи */
+        .related-articles {
+            margin: 80px 0 40px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .related-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .related-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .related-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-main);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--dark-blue);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--light-blue);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--light-blue);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(67, 56, 202, 0.1);
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .article-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            .author-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .breadcrumbs {
+                padding: 100px 0 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        /* Стили для кода */
+        .gdscript-keyword { color: #ff79c6; }
+        .gdscript-function { color: #50fa7b; }
+        .gdscript-string { color: #f1fa8c; }
+        .gdscript-comment { color: #6272a4; font-style: italic; }
+        .gdscript-number { color: #bd93f9; }
+        .gdscript-builtin { color: #8be9fd; }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="blog.html" class="nav-link active">Блог</a>
+                    <a href="index.html#about" class="nav-link">О нас</a>
+                    <a href="index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="index.html#plan" class="nav-link">Программа</a>
+                    <a href="index.html#projects" class="nav-link">Проекты</a>
+                    <a href="index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Главная</a>
+                <a href="blog.html" class="mobile-nav-link">Блог</a>
+                <a href="index.html#about" class="mobile-nav-link">О нас</a>
+                <a href="index.html#lessons" class="mobile-nav-link">Занятия</a>
+                <a href="index.html#plan" class="mobile-nav-link">Программа</a>
+                <a href="index.html#projects" class="mobile-nav-link">Проекты</a>
+                <a href="index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                <a href="index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Хлебные крошки -->
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="index.html">Главная</a>
+                <span>›</span>
+                <a href="blog.html">Блог</a>
+                <span>›</span>
+                <span>Простейший FPS шутер в Godot для начинающих</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент статьи -->
+    <main class="container">
+        <article class="article-content fade-in">
+            <h1>Простейший FPS шутер в Godot: создаем за 30 минут</h1>
+
+            <div class="article-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar"></i>
+                    <span>25 марта 2026</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-clock"></i>
+                    <span>15 мин чтения</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-user"></i>
+                    <span>Иван Сидоров</span>
+                </div>
+                <div class="article-tag">Для начинающих</div>
+                <div class="article-tag">3D</div>
+                <div class="article-tag">FPS</div>
+            </div>
+
+            <p>Привет! Сегодня мы создадим самый простой шутер от первого лица в Godot. Это идеальный проект для новичков, которые только начинают знакомиться с 3D разработкой. Мы разберем всё по шагам: от создания персонажа до стрельбы по мишеням.</p>
+
+            <blockquote>
+                Не бойтесь 3D! Мы будем использовать примитивные фигуры, чтобы сосредоточиться на логике, а не на графике.
+            </blockquote>
+
+            <h2>Шаг 1: Создаем основу персонажа</h2>
+            <p>Первым делом создадим игрока, который будет видеть мир от первого лица. Вот пошаговая инструкция:</p>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-user"></i>
+                    Создание структуры персонажа
+                </div>
+                <p>1. Создайте новую сцену (Scene → New Scene)<br>
+                2. Добавьте узел <strong>CharacterBody3D</strong> и назовите его "Player"<br>
+                3. Добавьте к нему дочерний узел <strong>MeshInstance3D</strong> с кубом (это будет тело)<br>
+                4. Добавьте к Player узел <strong>CollisionShape3D</strong> с формой CapsuleShape3D<br>
+                5. Добавьте к Player узел <strong>Camera3D</strong> и установите его текущей камерой</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Иерархия сцены Player
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">Player (CharacterBody3D)
+├── MeshInstance3D  # Тело игрока (куб)
+├── CollisionShape3D  # Коллизия (капсула)
+└── Camera3D  # Камера от первого лица</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Подсказка</h4>
+                <p>Чтобы сделать камеру текущей, выберите узел Camera3D и в инспекторе нажмите кнопку "Make Current". Или установите это в коде: <code>camera.current = true</code></p>
+            </div>
+
+            <h2>Шаг 2: Скрипт для движения игрока</h2>
+            <p>Теперь добавим возможность ходить с помощью клавиш WASD. Прикрепим скрипт к узлу Player.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-walking"></i>
+                        Скрипт движения игрока
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody3D
+
+# Скорость движения (метров в секунду)
+@export var speed = 5.0
+# Сила прыжка
+@export var jump_velocity = 4.5
+
+# Сила гравитации (берем из настроек проекта)
+var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
+
+func _physics_process(delta):
+    # Применяем гравитацию, если персонаж не на земле
+    if not is_on_floor():
+        velocity.y -= gravity * delta
+
+    # Обработка прыжка
+    if Input.is_action_just_pressed("jump") and is_on_floor():
+        velocity.y = jump_velocity
+
+    # Получаем ввод с клавиатуры (WASD)
+    var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
+
+    # Преобразуем ввод в направление движения
+    # transform.basis учитывает поворот персонажа
+    var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+
+    # Применяем движение в горизонтальной плоскости
+    if direction:
+        velocity.x = direction.x * speed
+        velocity.z = direction.z * speed
+    else:
+        # Плавная остановка
+        velocity.x = move_toward(velocity.x, 0, speed)
+        velocity.z = move_toward(velocity.z, 0, speed)
+
+    # Применяем движение
+    move_and_slide()</code></pre>
+            </div>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> Важно!</h4>
+                <p>Не забудьте настроить действия ввода в Project Settings!<br>
+                • move_left → клавиша A<br>
+                • move_right → клавиша D<br>
+                • move_forward → клавиша W<br>
+                • move_backward → клавиша S<br>
+                • jump → Space (пробел)</p>
+            </div>
+
+            <h2>Шаг 3: Вращение камеры мышкой</h2>
+            <p>Теперь добавим возможность смотреть по сторонам с помощью мыши. Это важнейшая часть FPS!</p>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-mouse"></i>
+                    Структура для плавного вращения
+                </div>
+                <p>Чтобы камера вращалась независимо от тела, изменим структуру:<br>
+                1. Добавьте к Player узел <strong>Node3D</strong> и назовите его "Head"<br>
+                2. Перетащите Camera3D в узел Head<br>
+                3. Теперь камера будет вращаться вместе с Head, а тело может двигаться отдельно</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-arrows-rotate"></i>
+                        Скрипт вращения мышкой
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody3D
+
+# Чувствительность мыши (можно настроить в инспекторе)
+@export var mouse_sensitivity = 0.002
+
+# Ссылка на узел Head (с камерой)
+@onready var head = $Head
+# Ссылка на камеру
+@onready var camera = $Head/Camera3D
+
+func _ready():
+    # Захватываем мышь в окно игры
+    Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _input(event):
+    # Если двигаем мышь - вращаем камеру
+    if event is InputEventMouseMotion:
+        # Вращение по горизонтали (тело поворачивается)
+        rotate_y(-event.relative.x * mouse_sensitivity)
+
+        # Вращение по вертикали (только голова с камерой)
+        head.rotate_x(-event.relative.y * mouse_sensitivity)
+
+        # Ограничиваем угол наклона головы, чтобы не крутилась на 360
+        head.rotation.x = clamp(head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+
+func _unhandled_input(event):
+    # Если нажали Escape - выходим из режима захвата мыши
+    if event.is_action_pressed("ui_cancel"):
+        if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
+            Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+        else:
+            Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Объяснение для новичков</h4>
+                <p><code>rotate_y()</code> вращает весь объект (тело) по горизонтали.<br>
+                <code>head.rotate_x()</code> вращает только голову с камерой по вертикали.<br>
+                <code>clamp()</code> ограничивает угол, чтобы нельзя было запрокинуть голову назад на 360°.</p>
+            </div>
+
+            <h2>Шаг 4: Создаем простую пулю</h2>
+            <p>Теперь создадим сцену пули, которая будет лететь прямо. Это отдельная сцена, которую мы будем создавать при стрельбе.</p>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-bullseye"></i>
+                    Создание сцены пули
+                </div>
+                <p>1. Создайте новую сцену (Scene → New Scene)<br>
+                2. Добавьте узел <strong>RigidBody3D</strong> и назовите "Bullet"<br>
+                3. Добавьте дочерний MeshInstance3D со сферой (это пуля)<br>
+                4. Добавьте CollisionShape3D с формой SphereShape3D<br>
+                5. Сохраните сцену как <code>bullet.tscn</code></p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Скрипт пули
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends RigidBody3D
+
+# Скорость пули
+@export var bullet_speed = 30.0
+# Время жизни пули (автоматическое удаление)
+@export var lifetime = 3.0
+
+func _ready():
+    # Пуля летит вперед (относительно своего поворота)
+    linear_velocity = -global_transform.basis.z * bullet_speed
+
+    # Автоматически удаляем через время
+    await get_tree().create_timer(lifetime).timeout
+    queue_free()
+
+# Если пуля во что-то врезалась - удаляем
+func _on_body_entered(body):
+    # Не удаляем сразу при столкновении с игроком
+    if body.name != "Player":
+        queue_free()</code></pre>
+            </div>
+
+            <h2>Шаг 5: Добавляем оружие и стрельбу</h2>
+            <p>Теперь добавим к игроку оружие, которое будет стрелять пулями при нажатии ЛКМ.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-gun"></i>
+                        Скрипт стрельбы (добавить к Player)
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody3D
+
+# Загружаем сцену пули (установите в инспекторе!)
+@export var bullet_scene: PackedScene
+# Точка появления пуль (установите в инспекторе!)
+@onready var gun_point = $Head/Camera3D/GunPoint
+
+func _ready():
+    # Создаем точку выстрела, если её нет
+    if not gun_point:
+        var new_gun_point = Marker3D.new()
+        new_gun_point.name = "GunPoint"
+        $Head/Camera3D.add_child(new_gun_point)
+        new_gun_point.position = Vector3(0, 0, -1)  # Немного вперед от камеры
+        gun_point = new_gun_point
+
+func _input(event):
+    # Если нажата левая кнопка мыши - стреляем
+    if event.is_action_pressed("fire"):
+        shoot()
+
+func shoot():
+    # Проверяем, загружена ли сцена пули
+    if bullet_scene == null:
+        print("Ошибка: сцена пули не загружена!")
+        return
+
+    # Создаем экземпляр пули
+    var bullet = bullet_scene.instantiate()
+
+    # Добавляем пулю на сцену (в тот же родитель, что и игрок)
+    get_parent().add_child(bullet)
+
+    # Устанавливаем позицию и поворот пули
+    bullet.global_transform = gun_point.global_transform
+
+    # Можно добавить небольшую случайность для разброса
+    # bullet.rotate_x(randf_range(-0.02, 0.02))
+    # bullet.rotate_y(randf_range(-0.02, 0.02))
+
+    print("Выстрел!")</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Настройка оружия</h4>
+                <p>1. Добавьте к Camera3D узел <strong>Marker3D</strong> и назовите "GunPoint"<br>
+                2. Перетащите его немного вперед (Z = -1)<br>
+                3. В инспекторе у Player установите Bullet Scene = <code>bullet.tscn</code></p>
+            </div>
+
+            <h2>Шаг 6: Добавляем звуки (опционально)</h2>
+            <p>Звуки делают игру живой. Добавим простые звуки для ходьбы и стрельбы.</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-volume-up"></i>
+                        Добавление звуков
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript"># Дополнение к скрипту Player
+
+# Звуки (установите в инспекторе!)
+@onready var shoot_sound = $ShootSound
+@onready var walk_sound = $WalkSound
+
+# Для звуков ходьбы
+var is_walking = false
+var walk_timer = 0.0
+var walk_step_interval = 0.5  # Интервал между шагами
+
+func _physics_process(delta):
+    # ... существующий код движения ...
+
+    # Звуки ходьбы
+    if is_on_floor() and velocity.length() > 0.5:
+        if not is_walking:
+            is_walking = true
+            play_walk_sound()
+
+        walk_timer += delta
+        if walk_timer >= walk_step_interval:
+            walk_timer = 0
+            play_walk_sound()
+    else:
+        is_walking = false
+
+func play_walk_sound():
+    if walk_sound:
+        # Немного меняем высоту звука для разнообразия
+        walk_sound.pitch_scale = randf_range(0.9, 1.1)
+        walk_sound.play()
+
+func shoot():
+    # ... существующий код стрельбы ...
+
+    # Проигрываем звук выстрела
+    if shoot_sound:
+        shoot_sound.play()</code></pre>
+            </div>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-music"></i>
+                    Как добавить звуковые узлы
+                </div>
+                <p>1. Добавьте к Player узел <strong>AudioStreamPlayer3D</strong> и назовите "ShootSound"<br>
+                2. В инспекторе установите звук выстрела (WAV или OGG файл)<br>
+                3. Добавьте еще один AudioStreamPlayer3D и назовите "WalkSound"<br>
+                4. Установите звук шагов<br>
+                5. Для WalkSound установите Max Distance = 10 и Unit Size = 5</p>
+            </div>
+
+            <h2>Шаг 7: Создаем мишень</h2>
+            <p>Наконец, создадим мишень, которая будет исчезать при попадании пули.</p>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-bullseye"></i>
+                    Создание сцены мишени
+                </div>
+                <p>1. Создайте новую сцену<br>
+                2. Добавьте узел <strong>StaticBody3D</strong> и назовите "Target"<br>
+                3. Добавьте MeshInstance3D с цилиндром (это мишень)<br>
+                4. Добавьте CollisionShape3D с формой CylinderShape3D<br>
+                5. Сохраните как <code>target.tscn</code></p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-crosshairs"></i>
+                        Скрипт мишени
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends StaticBody3D
+
+# Здоровье мишени (сколько выстрелов выдержит)
+@export var health = 3
+# Материал при попадании
+@onready var material = $MeshInstance3D.get_surface_override_material(0)
+
+func _ready():
+    # Если нет материала - создаем новый
+    if material == null:
+        material = StandardMaterial3D.new()
+        material.albedo_color = Color.RED  # Красная мишень
+        $MeshInstance3D.set_surface_override_material(0, material)
+
+# Вызывается при попадании пули
+func take_damage(damage_amount = 1):
+    health -= damage_amount
+
+    # Мигаем белым при попадании
+    material.emission = Color.WHITE
+    await get_tree().create_timer(0.1).timeout
+    material.emission = Color.BLACK
+
+    # Если здоровье закончилось - уничтожаем мишень
+    if health <= 0:
+        destroy()
+
+func destroy():
+    # Можно добавить эффект разрушения
+    print("Мишень уничтожена!")
+
+    # Исчезаем
+    queue_free()
+
+# Автоматически определяем попадание
+func _on_body_entered(body):
+    if "Bullet" in body.name:
+        take_damage()
+        # Удаляем пулю
+        body.queue_free()</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Как это работает</h4>
+                <p>1. Пуля сталкивается с мишенью → вызывается <code>_on_body_entered()</code><br>
+                2. Мишень получает урон → уменьшается здоровье<br>
+                3. Мишень мигает белым → визуальная обратная связь<br>
+                4. Если здоровье ≤ 0 → мишень уничтожается</p>
+            </div>
+
+            <h2>Что у нас получилось?</h2>
+            <p>Поздравляю! Вы только что создали простой, но полностью функциональный FPS шутер в Godot. Давайте подведем итоги:</p>
+
+            <ul>
+                <li>✅ Игрок ходит с помощью WASD и прыгает</li>
+                <li>✅ Камера вращается мышкой как в настоящем FPS</li>
+                <li>✅ При нажатии ЛКМ выстреливается пуля</li>
+                <li>✅ Пуля летит и сталкивается с объектами</li>
+                <li>✅ Мишень получает урон и исчезает при попадании</li>
+                <li>✅ Есть звуки ходьбы и стрельбы</li>
+            </ul>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-rocket"></i> Куда развивать проект дальше?</h4>
+                <p>1. Добавьте несколько типов оружия с разной скорострельностью<br>
+                2. Создайте систему подсчета очков за попадания<br>
+                3. Добавьте врагов, которые стреляют в ответ<br>
+                4. Создайте несколько уровней с разным расположением мишеней<br>
+                5. Добавьте меню с настройками и кнопкой "Начать игру"</p>
+            </div>
+
+            <!-- Автор -->
+            <div class="author-card fade-in">
+                <div class="author-avatar">
+                    ИС
+                </div>
+                <div class="author-info">
+                    <h4>Об авторе</h4>
+                    <p><strong>Иван Сидоров</strong> — преподаватель школы DOT, специализируется на обучении детей и подростков игровой разработке. Автор курса "Godot: первые шаги" для начинающих.</p>
+                    <p class="author-bio">Считает, что лучший способ научиться программированию — создавать игры, которые интересно играть.</p>
+                </div>
+            </div>
+
+            <!-- Навигация по статьям -->
+            <div class="article-navigation fade-in">
+                <a href="#" class="nav-btn prev">
+                    <i class="fas fa-arrow-left"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Предыдущая статья</div>
+                        <div style="font-weight: 600;">10 самых простых скриптов для новичков в Godot</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-btn next">
+                    <i class="fas fa-arrow-right"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Следующая статья</div>
+                        <div style="font-weight: 600;">Создание платформера: прыжки, враги, сбор монет</div>
+                    </div>
+                </a>
+            </div>
+        </article>
+
+        <!-- Похожие статьи -->
+        <section class="related-articles fade-in">
+            <h2>Похожие статьи</h2>
+            <div class="related-grid">
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Для начинающих</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Первые шаги в Godot: интерфейс и основы</h3>
+                        <p>Как ориентироваться в Godot и создавать простые 2D игры</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1552820728-8b83bb6b773f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">GDScript</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Основы GDScript для самых маленьких</h3>
+                        <p>Изучаем программирование на примере простых игровых механик</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">3D</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Как работать с 3D моделями в Godot</h3>
+                        <p>Импорт, текстурирование и анимация 3D объектов</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. Мы помогаем создавать игры с 2023 года. Блог DOT — это собрание полезных материалов для начинающих и продвинутых разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Для начинающих</a></li>
+                        <li><a href="#">GDScript</a></li>
+                        <li><a href="#">3D разработка</a></li>
+                        <li><a href="#">2D игры</a></li>
+                        <li><a href="#">UI/UX дизайн</a></li>
+                        <li><a href="#">Звуки и музыка</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        // Мобильное меню
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Закрытие меню при клике на ссылку
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        // Фиксированная шапка при скролле
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    // Закрываем мобильное меню если открыто
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Копирование кода
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codeBlock = this.closest('.code-block');
+                const code = codeBlock.querySelector('code').textContent;
+
+                // Копируем в буфер обмена
+                navigator.clipboard.writeText(code).then(() => {
+                    // Визуальная обратная связь
+                    const originalText = this.textContent;
+                    this.textContent = 'Скопировано!';
+                    this.style.background = '#10B981';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Анимация появления элементов
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Инициализация при загрузке
+        window.addEventListener('load', () => {
+            // Анимация появления заголовка
+            document.querySelector('h1').style.opacity = '1';
+            document.querySelector('h1').style.transform = 'translateY(0)';
+            document.querySelector('h1').style.transition = 'opacity 1s ease, transform 1s ease';
+        });
+
+        // Интерактивные примеры кода
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 15px 35px rgba(67, 56, 202, 0.2)';
+            });
+
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+</body>
+</html>

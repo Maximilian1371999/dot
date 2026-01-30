@@ -1,0 +1,2614 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Как сделать простой и функциональный GUI в Godot | Блог DOT</title>
+    <meta name="description" content="Пошаговое руководство по созданию интерфейса в Godot Engine: работа с Label, ProgressBar, Panel, TextureButton. Примеры: шкала здоровья, счётчик монет, слоты для предметов.">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Фиолетово-синяя палитра DOT */
+            --primary-blue: #4338CA;
+            --secondary-blue: #4F46E5;
+            --accent-purple: #7C3AED;
+            --light-blue: #E0E7FF;
+            --dark-blue: #312E81;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gradient-main: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            --gradient-subtle: linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 100%);
+            --gradient-dark: linear-gradient(135deg, #312E81 0%, #4C1D95 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1), 0 2px 4px -1px rgba(67, 56, 202, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(67, 56, 202, 0.15);
+            --code-bg: #1a1b26;
+            --code-text: #c0caf5;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--dark-blue);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-blue);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-main);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 15px;
+            color: var(--dark-blue);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 25px 0 10px;
+            color: var(--primary-blue);
+        }
+
+        /* Шапка */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 20px rgba(67, 56, 202, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-purple);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            padding: 120px 0 40px;
+            background: var(--gradient-subtle);
+            margin-bottom: 40px;
+        }
+
+        .breadcrumbs-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .breadcrumbs a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--accent-purple);
+            text-decoration: underline;
+        }
+
+        /* Мета-информация статьи */
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--light-blue);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .meta-item i {
+            color: var(--primary-blue);
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Контент статьи */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 60px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 25px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        /* Блоки кода */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--code-text);
+        }
+
+        .code-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--code-text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-blue);
+        }
+
+        .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* Примеры */
+        .example {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid var(--light-blue);
+            box-shadow: var(--shadow);
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--secondary-blue);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tip-box h4 {
+            color: var(--secondary-blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Навигация по статьям */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 60px 0;
+            padding: 30px 0;
+            border-top: 2px solid var(--light-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            width: 48%;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn.prev {
+            text-align: left;
+        }
+
+        .nav-btn.next {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .nav-btn i {
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        /* ГУИ-визуализация и демонстрации */
+        .gui-preview {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid var(--light-blue);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .gui-visual {
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+            min-height: 200px;
+        }
+
+        .gui-element {
+            display: inline-block;
+            margin: 10px;
+            vertical-align: middle;
+        }
+
+        .health-bar {
+            width: 300px;
+            height: 30px;
+            background: #f1f5f9;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #dc2626;
+            position: relative;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #dc2626, #ef4444);
+            width: 75%;
+            transition: width 0.5s;
+        }
+
+        .coin-display {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 10px;
+            padding: 15px 25px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .coin-icon {
+            color: #f59e0b;
+            font-size: 24px;
+        }
+
+        .inventory-slot {
+            width: 80px;
+            height: 80px;
+            background: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .inventory-slot:hover {
+            background: #d1d5db;
+        }
+
+        .inventory-slot.filled {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            border-style: solid;
+        }
+
+        .texture-button {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+            font-size: 16px;
+        }
+
+        .texture-button:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 56, 202, 0.3);
+        }
+
+        .texture-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(67, 56, 202, 0.2);
+        }
+
+        /* Демонстрационные блоки рядом со скриптами */
+        .script-demo-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .script-demo-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .demo-sidebar {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border: 2px solid var(--light-blue);
+        }
+
+        .demo-title {
+            font-size: 1.2rem;
+            color: var(--dark-blue);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .demo-title i {
+            color: var(--primary-blue);
+        }
+
+        .demo-content {
+            margin-top: 20px;
+        }
+
+        .demo-interactive {
+            background: var(--gradient-subtle);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .demo-controls button {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .demo-controls button:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+
+        .demo-explanation {
+            background: #f8fafc;
+            border-left: 4px solid var(--accent-purple);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .demo-explanation h5 {
+            color: var(--accent-purple);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        /* Интерактивные элементы для демо */
+        .progress-container {
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 30px;
+            margin: 15px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f97316, #22c55e);
+            width: 75%;
+            transition: width 0.5s ease, background 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            min-width: 40px;
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .inventory-cell {
+            width: 60px;
+            height: 60px;
+            background: #e2e8f0;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .inventory-cell:hover {
+            background: #d1d5db;
+            transform: scale(1.05);
+        }
+
+        .inventory-cell.has-item {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        .inventory-cell .item-icon {
+            font-size: 24px;
+            color: #1e40af;
+        }
+
+        .menu-preview {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+
+        .menu-item {
+            padding: 10px 15px;
+            margin: 5px 0;
+            background: #334155;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-item:hover {
+            background: #475569;
+            transform: translateX(5px);
+        }
+
+        .menu-item.active {
+            background: #4f46e5;
+        }
+
+        /* Автор */
+        .author-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .author-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-5px);
+        }
+
+        .author-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        .author-bio {
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+
+        /* Похожие статьи */
+        .related-articles {
+            margin: 80px 0 40px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .related-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .related-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .related-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-main);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--dark-blue);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--light-blue);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--light-blue);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(67, 56, 202, 0.1);
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .article-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            .author-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .breadcrumbs {
+                padding: 100px 0 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .script-demo-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        /* Стили для кода */
+        .gdscript-keyword { color: #ff79c6; }
+        .gdscript-function { color: #50fa7b; }
+        .gdscript-string { color: #f1fa8c; }
+        .gdscript-comment { color: #6272a4; font-style: italic; }
+        .gdscript-number { color: #bd93f9; }
+        .gdscript-builtin { color: #8be9fd; }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="blog.html" class="nav-link active">Блог</a>
+                    <a href="index.html#about" class="nav-link">О нас</a>
+                    <a href="index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="index.html#plan" class="nav-link">Программа</a>
+                    <a href="index.html#projects" class="nav-link">Проекты</a>
+                    <a href="index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Главная</a>
+                <a href="blog.html" class="mobile-nav-link">Блог</a>
+                <a href="index.html#about" class="mobile-nav-link">О нас</a>
+                <a href="index.html#lessons" class="mobile-nav-link">Занятия</a>
+                <a href="index.html#plan" class="mobile-nav-link">Программа</a>
+                <a href="index.html#projects" class="mobile-nav-link">Проекты</a>
+                <a href="index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                <a href="index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Хлебные крошки -->
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="index.html">Главная</a>
+                <span>›</span>
+                <a href="blog.html">Блог</a>
+                <span>›</span>
+                <span>Как сделать простой и функциональный GUI в Godot</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент статьи -->
+    <main class="container">
+        <article class="article-content fade-in">
+            <h1>Как сделать простой и функциональный GUI в Godot</h1>
+
+            <div class="article-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar"></i>
+                    <span>22 января 2026</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-clock"></i>
+                    <span>12 мин чтения</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-user"></i>
+                    <span>Мария Сидорова</span>
+                </div>
+                <div class="article-tag">GUI</div>
+                <div class="article-tag">UI/UX</div>
+                <div class="article-tag">Для начинающих</div>
+            </div>
+
+            <p>Интерфейс пользователя (GUI) — это то, с чем взаимодействует игрок в первую очередь. Хороший GUI не только информирует о состоянии игры, но и делает её удобной и приятной. В этой статье я покажу, как создать основные элементы интерфейса в Godot с нуля.</p>
+
+            <blockquote>
+                GUI — это лицо вашей игры. Простой и понятный интерфейс может сделать хорошую игру отличной!
+            </blockquote>
+
+            <div class="gui-preview">
+                <div class="example-header">
+                    <i class="fas fa-eye"></i>
+                    Пример готового GUI
+                </div>
+                <div class="gui-visual">
+                    <div class="gui-element">
+                        <div class="health-bar">
+                            <div class="health-fill"></div>
+                        </div>
+                        <div style="font-size: 14px; margin-top: 5px;">Прогресс-бар здоровья</div>
+                    </div>
+
+                    <div class="gui-element">
+                        <div class="coin-display">
+                            <i class="fas fa-coins coin-icon"></i>
+                            <span style="font-size: 20px; font-weight: bold;">1,250</span>
+                        </div>
+                        <div style="font-size: 14px; margin-top: 5px;">Счётчик монет</div>
+                    </div>
+
+                    <div class="gui-element">
+                        <div class="inventory-slot">
+                            <i class="fas fa-plus" style="font-size: 24px;"></i>
+                        </div>
+                        <div style="font-size: 14px; margin-top: 5px;">Слот инвентаря</div>
+                    </div>
+
+                    <div class="gui-element">
+                        <button class="texture-button">Пауза</button>
+                        <div style="font-size: 14px; margin-top: 5px;">Текстурная кнопка</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>1. Шкала здоровья через ProgressBar</h2>
+            <p>Создадим простую, но красивую шкалу здоровья, которая будет уменьшаться при получении урона.</p>
+
+            <div class="script-demo-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-heart"></i>
+                            Скрипт для шкалы здоровья
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Control
+
+# Ссылки на элементы GUI
+onready var health_bar = $HealthBar
+onready var health_label = $HealthLabel
+
+# Параметры здоровья
+var max_health = 100
+var current_health = 100
+
+func _ready():
+    update_health_display()
+
+# Функция получения урона
+func take_damage(damage):
+    current_health = max(0, current_health - damage)
+    update_health_display()
+
+    if current_health <= 0:
+        game_over()
+
+# Функция лечения
+func heal(amount):
+    current_health = min(max_health, current_health + amount)
+    update_health_display()
+
+# Обновление отображения
+func update_health_display():
+    # Обновляем прогресс-бар
+    health_bar.value = float(current_health) / max_health
+
+    # Обновляем текст
+    health_label.text = "HP: %d/%d" % [current_health, max_health]
+
+    # Меняем цвет
+    if current_health > 50:
+        health_bar.set_tint_progress(Color("2ecc71"))
+    elif current_health > 25:
+        health_bar.set_tint_progress(Color("f39c12"))
+    else:
+        health_bar.set_tint_progress(Color("e74c3c"))
+
+func game_over():
+    print("Игра окончена!")</code></pre>
+                </div>
+
+                <div class="demo-sidebar">
+                    <div class="demo-title">
+                        <i class="fas fa-play-circle"></i>
+                        Демонстрация
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-interactive">
+                            <div style="font-weight: 600; margin-bottom: 10px; color: var(--dark-blue);">
+                                Шкала здоровья игрока
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-fill" id="healthDemo" style="width: 75%; background: linear-gradient(90deg, #22c55e, #22c55e);">
+                                    75/100
+                                </div>
+                            </div>
+                            <div class="demo-controls">
+                                <button onclick="changeHealth(-10)">Урон (-10)</button>
+                                <button onclick="changeHealth(-25)">Сильный урон (-25)</button>
+                                <button onclick="changeHealth(10)">Лечение (+10)</button>
+                                <button onclick="changeHealth(25)">Полное лечение</button>
+                            </div>
+                        </div>
+                        <div class="demo-explanation">
+                            <h5>Как это работает:</h5>
+                            <p>ProgressBar отображает текущее здоровье игрока. При изменении здоровья полоска плавно меняет размер и цвет (зелёный → жёлтый → красный). Метод <code>update_health_display()</code> обновляет визуальное отображение и текст.</p>
+                            <p><strong>Ключевые моменты:</strong></p>
+                            <ul style="font-size: 14px; margin-top: 5px; padding-left: 20px;">
+                                <li>Значение ProgressBar от 0.0 до 1.0</li>
+                                <li>Динамическое изменение цвета через <code>set_tint_progress()</code></li>
+                                <li>Плавные анимации через Tween (см. совет)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Совет по ProgressBar</h4>
+                <p>Используйте <code>Tween</code> для плавного изменения значения шкалы здоровья:</p>
+                <pre style="background: #f1f5f9; padding: 10px; border-radius: 5px; font-size: 14px; margin-top: 10px;">
+var tween = Tween.new()
+add_child(tween)
+tween.interpolate_property(health_bar, "value",
+    health_bar.value, float(current_health)/max_health, 0.3)
+tween.start()</pre>
+            </div>
+
+            <h2>2. Счётчик монет через Label</h2>
+            <p>Создадим динамический счётчик монет с анимацией при изменении значения.</p>
+
+            <div class="script-demo-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-coins"></i>
+                            Скрипт счётчика монет
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Control
+
+# Ссылки на элементы
+onready var coin_label = $CoinLabel
+onready var coin_icon = $CoinIcon
+
+# Количество монет
+var coins = 0
+
+func _ready():
+    update_coin_display()
+
+# Добавление монет
+func add_coins(amount):
+    var old_coins = coins
+    coins += amount
+
+    # Анимация изменения числа
+    animate_coin_change(old_coins, coins)
+
+    # Сохраняем в глобальную переменную
+    Global.coins = coins
+
+# Трата монет
+func spend_coins(amount):
+    if coins >= amount:
+        var old_coins = coins
+        coins -= amount
+        animate_coin_change(old_coins, coins)
+        Global.coins = coins
+        return true
+    else:
+        # Недостаточно монет
+        $InsufficientCoinsAnimation.play()
+        return false
+
+# Обновление отображения
+func update_coin_display():
+    coin_label.text = str(coins)
+
+    # Добавляем разделители тысяч
+    if coins >= 1000:
+        coin_label.text = "%d" % [coins]
+
+# Анимация изменения счёта
+func animate_coin_change(from, to):
+    var tween = Tween.new()
+    add_child(tween)
+
+    # Анимация числа
+    tween.interpolate_method(self, "update_coin_animation",
+        from, to, 0.5, Tween.TRANS_QUAD, Tween.EASE_OUT)
+    tween.start()
+
+    # Анимация иконки
+    $CoinIcon/AnimationPlayer.play("coin_bounce")
+
+    yield(tween, "tween_completed")
+    tween.queue_free()
+
+func update_coin_animation(value):
+    # Промежуточное значение для анимации
+    coin_label.text = str(int(value))</code></pre>
+                </div>
+
+                <div class="demo-sidebar">
+                    <div class="demo-title">
+                        <i class="fas fa-play-circle"></i>
+                        Демонстрация
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-interactive">
+                            <div style="font-weight: 600; margin-bottom: 10px; color: var(--dark-blue);">
+                                Счётчик монет
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin: 20px 0;">
+                                <div style="font-size: 32px; color: #f59e0b;">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <div id="coinDemo" style="font-size: 36px; font-weight: bold; color: #b45309; transition: all 0.3s;">
+                                    1,250
+                                </div>
+                            </div>
+                            <div class="demo-controls">
+                                <button onclick="changeCoins(1)">+1 монета</button>
+                                <button onclick="changeCoins(10)">+10 монет</button>
+                                <button onclick="changeCoins(100)">Сундук (+100)</button>
+                                <button onclick="changeCoins(-50)">Потратить 50</button>
+                            </div>
+                            <div style="margin-top: 15px; font-size: 14px; color: var(--text-light);">
+                                <i class="fas fa-info-circle"></i> Кликните на монету для анимации
+                            </div>
+                        </div>
+                        <div class="demo-explanation">
+                            <h5>Как это работает:</h5>
+                            <p>Label отображает текущее количество монет. При изменении значения запускается анимация через Tween, которая плавно меняет число от старого к новому. Иконка монеты также анимируется при клике.</p>
+                            <p><strong>Особенности реализации:</strong></p>
+                            <ul style="font-size: 14px; margin-top: 5px; padding-left: 20px;">
+                                <li>Анимация изменения чисел через <code>interpolate_method()</code></li>
+                                <li>Звуковые и визуальные эффекты при сборе</li>
+                                <li>Проверка достаточности средств перед тратой</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>3. Слот для предметов (Panel + TextureButton)</h2>
+            <p>Создадим интерактивный слот инвентаря, в который можно помещать предметы.</p>
+
+            <div class="script-demo-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-box-open"></i>
+                            Скрипт слота инвентаря
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Panel
+
+# Ссылки на элементы слота
+onready var item_texture = $ItemTexture
+onready var amount_label = $AmountLabel
+onready var highlight = $Highlight
+
+# Данные предмета в слоте
+var item_data = null
+var item_amount = 0
+var slot_index = 0
+
+# Настройки слота
+export var slot_size = Vector2(64, 64)
+export var can_drop_items = true
+
+func _ready():
+    # Устанавливаем размер
+    rect_min_size = slot_size
+
+    # Изначально скрываем предмет
+    item_texture.visible = false
+    amount_label.visible = false
+    highlight.visible = false
+
+# Установка предмета в слот
+func set_item(new_item_data, amount = 1):
+    if new_item_data:
+        item_data = new_item_data
+        item_amount = amount
+
+        # Устанавливаем текстуру
+        item_texture.texture = load(item_data.texture_path)
+        item_texture.visible = true
+
+        # Показываем количество если больше 1
+        if amount > 1:
+            amount_label.text = str(amount)
+            amount_label.visible = true
+        else:
+            amount_label.visible = false
+    else:
+        # Очищаем слот
+        clear_slot()
+
+# Очистка слота
+func clear_slot():
+    item_data = null
+    item_amount = 0
+    item_texture.visible = false
+    amount_label.visible = false
+
+# Получение предмета из слота
+func get_item():
+    return {"data": item_data, "amount": item_amount}
+
+# Подсветка слота (при наведении или выборе)
+func set_highlight(active):
+    highlight.visible = active
+    if active:
+        modulate = Color(1.2, 1.2, 1.2)
+    else:
+        modulate = Color(1, 1, 1)
+
+# Обработка ввода (перетаскивание)
+func _gui_input(event):
+    if event is InputEventMouseButton:
+        if event.pressed and event.button_index == BUTTON_LEFT:
+            # ЛКМ - выбор предмета
+            if item_data:
+                emit_signal("slot_selected", slot_index)
+
+        elif event.pressed and event.button_index == BUTTON_RIGHT:
+            # ПКМ - использование предмета
+            if item_data:
+                use_item()</code></pre>
+                </div>
+
+                <div class="demo-sidebar">
+                    <div class="demo-title">
+                        <i class="fas fa-play-circle"></i>
+                        Демонстрация
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-interactive">
+                            <div style="font-weight: 600; margin-bottom: 10px; color: var(--dark-blue);">
+                                Инвентарь (3x3)
+                            </div>
+                            <div class="inventory-grid">
+                                <div class="inventory-cell" onclick="toggleItem(this, 0)">
+                                    <div class="item-icon">🗡️</div>
+                                </div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 1)">
+                                    <div class="item-icon">🛡️</div>
+                                </div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 2)"></div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 3)"></div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 4)">
+                                    <div class="item-icon">🧪</div>
+                                    <div style="position: absolute; bottom: 2px; right: 2px; background: #3b82f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">3</div>
+                                </div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 5)"></div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 6)"></div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 7)"></div>
+                                <div class="inventory-cell" onclick="toggleItem(this, 8)">
+                                    <div class="item-icon">💰</div>
+                                </div>
+                            </div>
+                            <div class="demo-controls" style="margin-top: 20px;">
+                                <button onclick="addRandomItem()">Добавить предмет</button>
+                                <button onclick="clearInventory()">Очистить все</button>
+                            </div>
+                            <div style="margin-top: 15px; font-size: 14px; color: var(--text-light);">
+                                <i class="fas fa-mouse-pointer"></i> Кликните на слот, чтобы добавить/убрать предмет
+                            </div>
+                        </div>
+                        <div class="demo-explanation">
+                            <h5>Как это работает:</h5>
+                            <p>Panel служит контейнером для слота, TextureButton (или Sprite) отображает предмет. Каждый слот хранит данные о предмете и его количестве. Поддержка drag-and-drop через <code>_gui_input()</code>.</p>
+                            <p><strong>Особенности:</strong></p>
+                            <ul style="font-size: 14px; margin-top: 5px; padding-left: 20px;">
+                                <li>Визуальная подсветка при наведении</li>
+                                <li>Отображение количества предметов (если > 1)</li>
+                                <li>Обработка ЛКМ и ПКМ отдельно</li>
+                                <li>Поддержка перетаскивания между слотами</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>4. Текстурные кнопки (TextureButton)</h2>
+            <p>Создадим кнопки с разными текстурами для каждого состояния.</p>
+
+            <div class="script-demo-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-gamepad"></i>
+                            Скрипт текстурной кнопки
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends TextureButton
+
+# Текстуры для разных состояний
+export(Texture) var normal_texture
+export(Texture) var hover_texture
+export(Texture) var pressed_texture
+export(Texture) var disabled_texture
+
+# Звуки кнопки
+export(AudioStream) var hover_sound
+export(AudioStream) var click_sound
+
+# Текст кнопки
+export(String) var button_text = "Кнопка"
+export(Color) var text_color = Color.white
+
+# Дополнительные эффекты
+export var enable_hover_effect = true
+export var enable_click_animation = true
+
+onready var label = $Label
+onready var audio_player = $AudioStreamPlayer
+
+func _ready():
+    # Настраиваем кнопку
+    setup_button()
+
+    # Подключаем сигналы
+    connect("mouse_entered", self, "_on_mouse_entered")
+    connect("mouse_exited", self, "_on_mouse_exited")
+    connect("pressed", self, "_on_pressed")
+
+# Настройка кнопки
+func setup_button():
+    # Устанавливаем текстуры
+    texture_normal = normal_texture
+    texture_hover = hover_texture if hover_texture else normal_texture
+    texture_pressed = pressed_texture if pressed_texture else normal_texture
+    texture_disabled = disabled_texture if disabled_texture else normal_texture
+
+    # Настраиваем текст
+    if label:
+        label.text = button_text
+        label.add_color_override("font_color", text_color)
+        label.add_font_override("font", load("res://fonts/button_font.tres"))
+
+# При наведении мыши
+func _on_mouse_entered():
+    if enable_hover_effect and not disabled:
+        # Эффект увеличения
+        var tween = Tween.new()
+        add_child(tween)
+        tween.interpolate_property(self, "rect_scale",
+            rect_scale, Vector2(1.05, 1.05), 0.1)
+        tween.start()
+
+        # Проигрываем звук
+        if hover_sound:
+            audio_player.stream = hover_sound
+            audio_player.play()
+
+# При уходе мыши
+func _on_mouse_exited():
+    if enable_hover_effect and not disabled:
+        var tween = Tween.new()
+        add_child(tween)
+        tween.interpolate_property(self, "rect_scale",
+            rect_scale, Vector2(1, 1), 0.1)
+        tween.start()
+
+# При нажатии
+func _on_pressed():
+    if click_sound:
+        audio_player.stream = click_sound
+        audio_player.play()
+
+    if enable_click_animation:
+        # Анимация нажатия
+        var tween = Tween.new()
+        add_child(tween)
+
+        # Сначала уменьшаем
+        tween.interpolate_property(self, "rect_scale",
+            rect_scale, Vector2(0.95, 0.95), 0.05)
+
+        # Потом возвращаем
+        tween.interpolate_property(self, "rect_scale",
+            Vector2(0.95, 0.95), Vector2(1, 1), 0.1,
+            Tween.TRANS_ELASTIC, Tween.EASE_OUT, 0.05)
+
+        tween.start()</code></pre>
+                </div>
+
+                <div class="demo-sidebar">
+                    <div class="demo-title">
+                        <i class="fas fa-play-circle"></i>
+                        Демонстрация
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-interactive">
+                            <div style="font-weight: 600; margin-bottom: 15px; color: var(--dark-blue);">
+                                Текстурные кнопки с состояниями
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                                <button class="texture-button" id="demoButton"
+                                        onmouseenter="buttonHover(this)"
+                                        onmouseleave="buttonLeave(this)"
+                                        onclick="buttonClick(this)">
+                                    <i class="fas fa-play"></i> Начать игру
+                                </button>
+
+                                <button class="texture-button" style="background: #10b981;"
+                                        onmouseenter="buttonHover(this)"
+                                        onmouseleave="buttonLeave(this)"
+                                        onclick="buttonClick(this)">
+                                    <i class="fas fa-save"></i> Сохранить
+                                </button>
+
+                                <button class="texture-button" style="background: #ef4444;"
+                                        onmouseenter="buttonHover(this)"
+                                        onmouseleave="buttonLeave(this)"
+                                        onclick="buttonClick(this)">
+                                    <i class="fas fa-times"></i> Выход
+                                </button>
+
+                                <button class="texture-button" style="background: #6b7280; opacity: 0.6; cursor: not-allowed;"
+                                        disabled>
+                                    <i class="fas fa-lock"></i> Заблокировано
+                                </button>
+                            </div>
+                            <div style="margin-top: 20px; padding: 10px; background: #f3f4f6; border-radius: 6px; font-size: 14px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                    <span>Состояние:</span>
+                                    <span id="buttonState" style="font-weight: 600; color: var(--primary-blue);">Обычное</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between;">
+                                    <span>Клики:</span>
+                                    <span id="clickCount" style="font-weight: 600; color: var(--accent-purple);">0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="demo-explanation">
+                            <h5>Как это работает:</h5>
+                            <p>TextureButton имеет 4 состояния с разными текстурами: normal, hover, pressed, disabled. Каждое состояние можно настроить отдельно. Добавлены звуковые эффекты и анимации для лучшего UX.</p>
+                            <p><strong>Ключевые функции:</strong></p>
+                            <ul style="font-size: 14px; margin-top: 5px; padding-left: 20px;">
+                                <li>Отдельные текстуры для каждого состояния</li>
+                                <li>Анимации при наведении и нажатии через Tween</li>
+                                <li>Звуковая обратная связь</li>
+                                <li>Поддержка текста на кнопке</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>5. Панель меню с контейнерами</h2>
+            <p>Создадим главное меню с использованием контейнеров для автоматического расположения элементов.</p>
+
+            <div class="script-demo-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-bars"></i>
+                            Скрипт панели меню
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends PanelContainer
+
+# Элементы меню
+onready var title_label = $VBoxContainer/TitleLabel
+onready var button_container = $VBoxContainer/ButtonContainer
+onready var version_label = $VBoxContainer/VersionLabel
+
+# Кнопки меню
+var menu_buttons = []
+
+func _ready():
+    setup_menu()
+    adjust_layout()
+
+# Настройка меню
+func setup_menu():
+    # Стилизуем панель
+    add_stylebox_override("panel", load("res://styles/menu_panel.tres"))
+
+    # Устанавливаем заголовок
+    title_label.text = "Главное меню"
+
+    # Создаём кнопки меню
+    create_menu_button("Продолжить", "resume_game")
+    create_menu_button("Новая игра", "start_new_game")
+    create_menu_button("Настройки", "open_settings")
+    create_menu_button("Об игре", "show_credits")
+    create_menu_button("Выход", "quit_game")
+
+    # Устанавливаем версию
+    version_label.text = "Версия %s" % Global.game_version
+
+# Создание кнопки меню
+func create_menu_button(text, action):
+    var button = TextureButton.new()
+    button.text = text
+    button.connect("pressed", self, "_on_menu_button_pressed", [action])
+
+    # Загружаем настройки кнопки
+    var button_style = preload("res://scenes/ui/MenuButton.tscn")
+    if button_style:
+        var button_instance = button_style.instance()
+        button_instance.set_text(text)
+        button_container.add_child(button_instance)
+        menu_buttons.append(button_instance)
+
+    return button
+
+# Обработка нажатия кнопки
+func _on_menu_button_pressed(action):
+    match action:
+        "resume_game":
+            hide_menu()
+        "start_new_game":
+            start_new_game()
+        "open_settings":
+            open_settings()
+        "show_credits":
+            show_credits()
+        "quit_game":
+            quit_game()
+
+# Адаптация под разные разрешения
+func adjust_layout():
+    var screen_size = get_viewport_rect().size
+
+    if screen_size.y < 600:
+        # Маленькое разрешение - уменьшаем отступы
+        $VBoxContainer.add_constant_override("separation", 10)
+        for button in menu_buttons:
+            button.rect_min_size.y = 40
+    else:
+        # Большое разрешение - стандартные отступы
+        $VBoxContainer.add_constant_override("separation", 20)
+        for button in menu_buttons:
+            button.rect_min_size.y = 50
+
+    # Центрируем меню
+    rect_position = (screen_size - rect_size) / 2</code></pre>
+                </div>
+
+                <div class="demo-sidebar">
+                    <div class="demo-title">
+                        <i class="fas fa-play-circle"></i>
+                        Демонстрация
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-interactive">
+                            <div style="font-weight: 600; margin-bottom: 15px; color: var(--dark-blue);">
+                                Главное меню игры
+                            </div>
+                            <div class="menu-preview">
+                                <div style="text-align: center; font-size: 24px; margin-bottom: 20px; color: #60a5fa;">
+                                    <i class="fas fa-gamepad"></i> НАЗВАНИЕ ИГРЫ
+                                </div>
+                                <div id="menuItems">
+                                    <div class="menu-item" onclick="selectMenuItem(this, 'Продолжить')">
+                                        <i class="fas fa-play"></i> Продолжить
+                                    </div>
+                                    <div class="menu-item" onclick="selectMenuItem(this, 'Новая игра')">
+                                        <i class="fas fa-plus-circle"></i> Новая игра
+                                    </div>
+                                    <div class="menu-item" onclick="selectMenuItem(this, 'Настройки')">
+                                        <i class="fas fa-cog"></i> Настройки
+                                    </div>
+                                    <div class="menu-item" onclick="selectMenuItem(this, 'Загрузка')">
+                                        <i class="fas fa-folder-open"></i> Загрузка
+                                    </div>
+                                    <div class="menu-item" onclick="selectMenuItem(this, 'Выход')">
+                                        <i class="fas fa-door-open"></i> Выход
+                                    </div>
+                                </div>
+                                <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #94a3b8;">
+                                    Версия 1.2.3
+                                </div>
+                            </div>
+                            <div class="demo-controls" style="margin-top: 20px;">
+                                <button onclick="changeMenuTheme('dark')">Тёмная тема</button>
+                                <button onclick="changeMenuTheme('light')">Светлая тема</button>
+                                <button onclick="changeMenuTheme('purple')">Фиолетовая</button>
+                            </div>
+                            <div style="margin-top: 15px; font-size: 14px; color: var(--text-light);">
+                                <i class="fas fa-arrows-alt"></i> Контейнеры автоматически располагают элементы
+                            </div>
+                        </div>
+                        <div class="demo-explanation">
+                            <h5>Как это работает:</h5>
+                            <p>PanelContainer с VBoxContainer автоматически располагает элементы по вертикали. Каждая кнопка меню создаётся динамически. Меню адаптируется под разные разрешения экрана.</p>
+                            <p><strong>Особенности:</strong></p>
+                            <ul style="font-size: 14px; margin-top: 5px; padding-left: 20px;">
+                                <li>VBoxContainer для вертикального расположения</li>
+                                <li>Динамическое создание кнопок</li>
+                                <li>Адаптация под разные разрешения</li>
+                                <li>Центрирование на экране</li>
+                                <li>Поддержка разных тем оформления</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>6. Управление всем GUI через один скрипт</h2>
+            <p>Создадим централизованную систему управления всеми элементами GUI.</p>
+
+            <div class="script-demo-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-cogs"></i>
+                            Главный скрипт GUI
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends CanvasLayer
+
+# Ссылки на все элементы GUI
+onready var health_bar = $HUD/HealthBar
+onready var coin_label = $HUD/CoinLabel
+onready var inventory_panel = $HUD/InventoryPanel
+onready var menu_panel = $MenuPanel
+onready var tooltip = $Tooltip
+
+# Состояние GUI
+var is_menu_open = false
+var is_inventory_open = false
+
+func _ready():
+    # Инициализируем GUI
+    initialize_gui()
+
+    # Подключаемся к глобальным сигналам
+    Global.connect("player_health_changed", self, "_on_player_health_changed")
+    Global.connect("coins_changed", self, "_on_coins_changed")
+    Global.connect("item_collected", self, "_on_item_collected")
+
+# Инициализация всех элементов
+func initialize_gui():
+    # Скрываем меню при старте
+    menu_panel.visible = false
+    tooltip.visible = false
+
+    # Настраиваем HUD
+    update_health(Global.player_health, Global.player_max_health)
+    update_coins(Global.coins)
+
+    # Настраиваем инвентарь
+    initialize_inventory()
+
+# Обновление здоровья
+func update_health(current, max_health):
+    health_bar.max_value = max_health
+    health_bar.value = current
+    health_bar.get_node("Label").text = "HP: %d/%d" % [current, max_health]
+
+# Обновление монет
+func update_coins(amount):
+    coin_label.text = str(amount)
+
+# Инициализация инвентаря
+func initialize_inventory():
+    for i in range(inventory_panel.slot_count):
+        var slot = inventory_panel.get_slot(i)
+        slot.connect("slot_selected", self, "_on_inventory_slot_selected")
+
+# Показать/скрыть меню
+func toggle_menu():
+    is_menu_open = !is_menu_open
+
+    if is_menu_open:
+        menu_panel.show_menu()
+        get_tree().paused = true
+    else:
+        menu_panel.hide_menu()
+        get_tree().paused = false
+
+# Показать/скрыть инвентарь
+func toggle_inventory():
+    is_inventory_open = !is_inventory_open
+    inventory_panel.visible = is_inventory_open
+
+    if is_inventory_open:
+        # Пауза игры при открытом инвентаре
+        get_tree().paused = true
+    else:
+        get_tree().paused = false
+
+# Показать подсказку
+func show_tooltip(text, position):
+    tooltip.text = text
+    tooltip.rect_position = position
+    tooltip.visible = true
+
+    # Автоматически скрыть через 3 секунды
+    yield(get_tree().create_timer(3.0), "timeout")
+    tooltip.visible = false</code></pre>
+                </div>
+
+                <div class="demo-sidebar">
+                    <div class="demo-title">
+                        <i class="fas fa-play-circle"></i>
+                        Демонстрация
+                    </div>
+                    <div class="demo-content">
+                        <div class="demo-interactive">
+                            <div style="font-weight: 600; margin-bottom: 15px; color: var(--dark-blue);">
+                                Интегрированный HUD
+                            </div>
+                            <div style="background: linear-gradient(135deg, #1e293b, #334155); border-radius: 10px; padding: 20px; color: white;">
+                                <!-- Верхняя панель -->
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                                    <div>
+                                        <div style="font-size: 12px; color: #94a3b8;">ЗДОРОВЬЕ</div>
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <div style="width: 150px; height: 20px; background: #475569; border-radius: 10px; overflow: hidden;">
+                                                <div style="width: 65%; height: 100%; background: linear-gradient(90deg, #ef4444, #f97316);"></div>
+                                            </div>
+                                            <span style="font-weight: bold;">65/100</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; color: #94a3b8;">МОНЕТЫ</div>
+                                        <div style="display: flex; align-items: center; gap: 8px; font-size: 20px;">
+                                            <i class="fas fa-coins" style="color: #f59e0b;"></i>
+                                            <span style="font-weight: bold;">1,250</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 12px; color: #94a3b8;">УРОВЕНЬ</div>
+                                        <div style="font-size: 20px; font-weight: bold; color: #60a5fa;">12</div>
+                                    </div>
+                                </div>
+
+                                <!-- Центр -->
+                                <div style="text-align: center; margin: 20px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                    <div id="gameMessage" style="font-size: 16px;">
+                                        Игра в процессе...
+                                    </div>
+                                    <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
+                                        Нажмите TAB для инвентаря, ESC для меню
+                                    </div>
+                                </div>
+
+                                <!-- Кнопки управления -->
+                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                    <button onclick="guiAction('inventory')" style="background: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                                        <i class="fas fa-backpack"></i> Инвентарь (TAB)
+                                    </button>
+                                    <button onclick="guiAction('menu')" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                                        <i class="fas fa-bars"></i> Меню (ESC)
+                                    </button>
+                                    <button onclick="guiAction('pause')" style="background: #f59e0b; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">
+                                        <i class="fas fa-pause"></i> Пауза (P)
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 20px; font-size: 14px; color: var(--text-light);">
+                                <div id="guiStatus" style="padding: 10px; background: #f3f4f6; border-radius: 6px;">
+                                    <strong>Статус:</strong> Игра активна | Меню: закрыто | Инвентарь: закрыт
+                                </div>
+                            </div>
+                        </div>
+                        <div class="demo-explanation">
+                            <h5>Как это работает:</h5>
+                            <p>CanvasLayer содержит все элементы GUI. Централизованный скрипт управляет состоянием интерфейса, обрабатывает ввод и координирует взаимодействие между элементами. Используются сигналы для связи между компонентами.</p>
+                            <p><strong>Преимущества такого подхода:</strong></p>
+                            <ul style="font-size: 14px; margin-top: 5px; padding-left: 20px;">
+                                <li>Единая точка управления всем GUI</li>
+                                <li>Автоматическая обработка паузы игры</li>
+                                <li>Централизованная обработка ввода</li>
+                                <li>Лёгкое добавление новых элементов</li>
+                                <li>Согласованное поведение всех компонентов</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Практические советы</h2>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-check-circle"></i> Совет 1: Используйте темы (Themes)</h4>
+                <p>Создайте Theme Resource для единообразия стиля всех элементов GUI. Это упростит изменение дизайна.</p>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-check-circle"></i> Совет 2: Адаптивный дизайн</h4>
+                <p>Используйте Anchors и Margins вместо фиксированных позиций. Это сделает GUI адаптивным под разные разрешения.</p>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-check-circle"></i> Совет 3: Анимации</h4>
+                <p>Добавляйте плавные анимации для всех изменений в GUI. Используйте Tween для плавного перемещения, изменения размера и прозрачности.</p>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-check-circle"></i> Совет 4: Звуковая обратная связь</h4>
+                <p>Добавляйте звуки для всех действий в GUI: наведение, нажатие, получение предмета, изменение значений.</p>
+            </div>
+
+            <h2>Заключение</h2>
+            <p>Создание качественного GUI в Godot — это не так сложно, как может показаться на первый взгляд. Используя встроенные элементы и следуя приведённым примерам, вы сможете создать интерфейс для своей игры, который будет не только функциональным, но и приятным для игрока.</p>
+
+            <p>Помните: хороший GUI должен быть:</p>
+            <ul>
+                <li><strong>Интуитивно понятным</strong> — игрок сразу понимает, что делать</li>
+                <li><strong>Информативным</strong> — показывает всю необходимую информацию</li>
+                <li><strong>Ненавязчивым</strong> — не мешает игровому процессу</li>
+                <li><strong>Эстетичным</strong> — соответствует стилю игры</li>
+                <li><strong>Отзывчивым</strong> — быстро реагирует на действия игрока</li>
+            </ul>
+
+            <!-- Автор -->
+            <div class="author-card fade-in">
+                <div class="author-avatar">
+                    МС
+                </div>
+                <div class="author-info">
+                    <h4>Об авторе</h4>
+                    <p><strong>Мария Сидорова</strong> — UI/UX дизайнер и преподаватель школы DOT. Специализируется на создании интерфейсов для игр и обучающих приложений. Более 8 лет опыта работы с Godot Engine.</p>
+                    <p class="author-bio">Автор курса "Геймдизайн и интерфейсы" и нескольких популярных игр с уникальным визуальным стилем.</p>
+                </div>
+            </div>
+
+            <!-- Навигация по статьям -->
+            <div class="article-navigation fade-in">
+                <a href="#" class="nav-btn prev">
+                    <i class="fas fa-arrow-left"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Предыдущая статья</div>
+                        <div style="font-weight: 600;">10 самых простых скриптов для новичков в Godot</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-btn next">
+                    <i class="fas fa-arrow-right"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Следующая статья</div>
+                        <div style="font-weight: 600;">Создание системы диалогов для RPG-игры</div>
+                    </div>
+                </a>
+            </div>
+        </article>
+
+        <!-- Похожие статьи -->
+        <section class="related-articles fade-in">
+            <h2>Похожие статьи</h2>
+            <div class="related-grid">
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">UI/UX</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Основы UI-дизайна для игр</h3>
+                        <p>Принципы создания удобных и красивых интерфейсов</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Анимации</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Анимации GUI в Godot</h3>
+                        <p>Как оживить интерфейс с помощью AnimationPlayer и Tween</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Практика</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Создание инвентаря с нуля</h3>
+                        <p>Полное руководство по системе инвентаря в Godot</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. Мы помогаем создавать игры с 2023 года. Блог DOT — это собрание полезных материалов для начинающих и продвинутых разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Для начинающих</a></li>
+                        <li><a href="#">GUI/UI</a></li>
+                        <li><a href="#">GDScript</a></li>
+                        <li><a href="#">2D разработка</a></li>
+                        <li><a href="#">Анимации</a></li>
+                        <li><a href="#">Практические примеры</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        // Мобильное меню
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Закрытие меню при клике на ссылку
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        // Фиксированная шапка при скролле
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    // Закрываем мобильное меню если открыто
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Копирование кода
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codeBlock = this.closest('.code-block');
+                const code = codeBlock.querySelector('code').textContent;
+
+                // Копируем в буфер обмена
+                navigator.clipboard.writeText(code).then(() => {
+                    // Визуальная обратная связь
+                    const originalText = this.textContent;
+                    this.textContent = 'Скопировано!';
+                    this.style.background = '#10B981';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Анимация появления элементов
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // ===============================
+        // ИНТЕРАКТИВНЫЕ ДЕМОНСТРАЦИИ
+        // ===============================
+
+        // 1. Демонстрация здоровья
+        let health = 75;
+        function changeHealth(amount) {
+            let newHealth = health + amount;
+            if (newHealth > 100) newHealth = 100;
+            if (newHealth < 0) newHealth = 0;
+
+            health = newHealth;
+            const healthBar = document.getElementById('healthDemo');
+
+            // Плавное изменение ширины
+            healthBar.style.width = health + '%';
+            healthBar.textContent = health + '/100';
+
+            // Изменение цвета в зависимости от здоровья
+            if (health > 50) {
+                healthBar.style.background = 'linear-gradient(90deg, #22c55e, #22c55e)';
+            } else if (health > 25) {
+                healthBar.style.background = 'linear-gradient(90deg, #f97316, #f97316)';
+            } else {
+                healthBar.style.background = 'linear-gradient(90deg, #ef4444, #ef4444)';
+            }
+
+            // Эффект при критическом здоровье
+            if (health <= 10) {
+                healthBar.style.animation = 'pulse 0.5s infinite alternate';
+            } else {
+                healthBar.style.animation = '';
+            }
+
+            // Сообщение при смерти
+            if (health === 0) {
+                setTimeout(() => {
+                    alert('Игрок погиб! Игра окончена.');
+                }, 300);
+            }
+        }
+
+        // 2. Демонстрация монет
+        let coins = 1250;
+        let clickCount = 0;
+        function changeCoins(amount) {
+            coins += amount;
+            if (coins < 0) coins = 0;
+
+            const coinDisplay = document.getElementById('coinDemo');
+            const coinIcon = coinDisplay.previousElementSibling;
+
+            // Форматирование с разделителями
+            const formattedCoins = coins.toLocaleString('ru-RU');
+            coinDisplay.textContent = formattedCoins;
+
+            // Анимация изменения
+            coinDisplay.style.transform = 'scale(1.2)';
+            coinDisplay.style.color = amount > 0 ? '#059669' : '#dc2626';
+
+            // Анимация иконки при добавлении монет
+            if (amount > 0) {
+                coinIcon.style.transform = 'scale(1.3) rotate(15deg)';
+                setTimeout(() => {
+                    coinIcon.style.transform = 'scale(1) rotate(0deg)';
+                }, 300);
+            }
+
+            setTimeout(() => {
+                coinDisplay.style.transform = 'scale(1)';
+                coinDisplay.style.color = '#b45309';
+            }, 300);
+
+            // Обновление счётчика кликов для демо кнопок
+            if (amount === 1) {
+                clickCount++;
+                document.getElementById('clickCount').textContent = clickCount;
+            }
+        }
+
+        // Обработчик клика на иконку монеты
+        document.querySelectorAll('.fa-coins').forEach(icon => {
+            if (icon.closest('.demo-interactive')) {
+                icon.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.3) rotate(360deg)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1) rotate(0deg)';
+                    }, 600);
+
+                    // Добавляем монету при клике
+                    changeCoins(1);
+                });
+            }
+        });
+
+        // 3. Демонстрация инвентаря
+        const items = ['🗡️', '🛡️', '🏹', '🧪', '🔑', '💰', '📜', '💎', '⚗️'];
+        function toggleItem(cell, index) {
+            if (cell.classList.contains('has-item')) {
+                // Убираем предмет
+                cell.classList.remove('has-item');
+                cell.innerHTML = '';
+            } else {
+                // Добавляем предмет
+                cell.classList.add('has-item');
+                const item = items[Math.floor(Math.random() * items.length)];
+                cell.innerHTML = `<div class="item-icon">${item}</div>`;
+
+                // Случайное количество для некоторых предметов
+                if (Math.random() > 0.7) {
+                    const count = Math.floor(Math.random() * 5) + 1;
+                    cell.innerHTML += `<div style="position: absolute; bottom: 2px; right: 2px; background: #3b82f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center;">${count}</div>`;
+                }
+            }
+
+            // Эффект при добавлении
+            cell.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                cell.style.transform = 'scale(1)';
+            }, 150);
+        }
+
+        function addRandomItem() {
+            const emptyCells = Array.from(document.querySelectorAll('.inventory-cell'))
+                .filter(cell => !cell.classList.contains('has-item'));
+
+            if (emptyCells.length > 0) {
+                const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                toggleItem(randomCell);
+            } else {
+                alert('Инвентарь полон!');
+            }
+        }
+
+        function clearInventory() {
+            document.querySelectorAll('.inventory-cell').forEach(cell => {
+                if (cell.classList.contains('has-item')) {
+                    toggleItem(cell);
+                }
+            });
+        }
+
+        // 4. Демонстрация кнопок
+        function buttonHover(button) {
+            const state = document.getElementById('buttonState');
+            state.textContent = 'Наведение';
+            state.style.color = '#7c3aed';
+            button.style.transform = 'translateY(-3px)';
+            button.style.boxShadow = '0 6px 20px rgba(67, 56, 202, 0.4)';
+        }
+
+        function buttonLeave(button) {
+            const state = document.getElementById('buttonState');
+            state.textContent = 'Обычное';
+            state.style.color = '#4338ca';
+            button.style.transform = 'translateY(0)';
+            button.style.boxShadow = '';
+        }
+
+        function buttonClick(button) {
+            if (button.disabled) return;
+
+            const state = document.getElementById('buttonState');
+            state.textContent = 'Нажатие';
+            state.style.color = '#dc2626';
+
+            // Анимация нажатия
+            button.style.transform = 'scale(0.95)';
+            button.style.opacity = '0.9';
+
+            // Обновляем счётчик кликов
+            clickCount++;
+            document.getElementById('clickCount').textContent = clickCount;
+
+            // Возвращаем к исходному состоянию
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+                button.style.opacity = '1';
+                state.textContent = 'Обычное';
+                state.style.color = '#4338ca';
+            }, 150);
+
+            // Действие в зависимости от кнопки
+            const buttonText = button.textContent.trim();
+            if (buttonText.includes('Начать')) {
+                document.getElementById('gameMessage').textContent = 'Игра начинается...';
+            } else if (buttonText.includes('Сохранить')) {
+                document.getElementById('gameMessage').textContent = 'Игра сохранена!';
+            } else if (buttonText.includes('Выход')) {
+                document.getElementById('gameMessage').textContent = 'Выход из игры...';
+            }
+        }
+
+        // 5. Демонстрация меню
+        function selectMenuItem(item, text) {
+            // Убираем активный класс у всех элементов
+            document.querySelectorAll('.menu-item').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Добавляем активный класс выбранному элементу
+            item.classList.add('active');
+
+            // Показываем сообщение
+            document.getElementById('gameMessage').textContent = `Выбрано: ${text}`;
+
+            // Эффект выбора
+            item.style.transform = 'scale(0.98)';
+            setTimeout(() => {
+                item.style.transform = 'scale(1)';
+            }, 150);
+
+            // Особые действия
+            if (text === 'Выход') {
+                setTimeout(() => {
+                    alert('Выход из игры');
+                }, 500);
+            }
+        }
+
+        function changeMenuTheme(theme) {
+            const menu = document.querySelector('.menu-preview');
+            const items = document.querySelectorAll('.menu-item');
+
+            switch(theme) {
+                case 'dark':
+                    menu.style.background = '#1e293b';
+                    items.forEach(item => {
+                        item.style.background = '#334155';
+                    });
+                    break;
+                case 'light':
+                    menu.style.background = '#f8fafc';
+                    menu.style.color = '#1e293b';
+                    items.forEach(item => {
+                        item.style.background = '#e2e8f0';
+                        item.style.color = '#1e293b';
+                    });
+                    break;
+                case 'purple':
+                    menu.style.background = 'linear-gradient(135deg, #4338ca, #7c3aed)';
+                    items.forEach(item => {
+                        item.style.background = 'rgba(255, 255, 255, 0.1)';
+                    });
+                    break;
+            }
+        }
+
+        // 6. Демонстрация интегрированного GUI
+        let menuOpen = false;
+        let inventoryOpen = false;
+        let gamePaused = false;
+
+        function guiAction(action) {
+            const status = document.getElementById('guiStatus');
+            const message = document.getElementById('gameMessage');
+
+            switch(action) {
+                case 'inventory':
+                    inventoryOpen = !inventoryOpen;
+                    message.textContent = inventoryOpen ? 'Инвентарь открыт' : 'Инвентарь закрыт';
+                    gamePaused = inventoryOpen;
+                    break;
+                case 'menu':
+                    menuOpen = !menuOpen;
+                    message.textContent = menuOpen ? 'Меню открыто' : 'Меню закрыто';
+                    gamePaused = menuOpen;
+                    break;
+                case 'pause':
+                    gamePaused = !gamePaused;
+                    message.textContent = gamePaused ? 'Игра на паузе' : 'Игра продолжается';
+                    break;
+            }
+
+            // Обновляем статус
+            let statusText = gamePaused ? 'Игра на паузе' : 'Игра активна';
+            statusText += ` | Меню: ${menuOpen ? 'открыто' : 'закрыто'}`;
+            statusText += ` | Инвентарь: ${inventoryOpen ? 'открыт' : 'закрыт'}`;
+            status.textContent = `Статус: ${statusText}`;
+
+            // Визуальная обратная связь
+            status.style.background = gamePaused ? '#fee2e2' : '#f3f4f6';
+            status.style.color = gamePaused ? '#991b1b' : '#1e293b';
+        }
+
+        // Инициализация анимации здоровья
+        setInterval(() => {
+            const healthFill = document.querySelector('.health-fill');
+            if (healthFill) {
+                const currentWidth = parseInt(healthFill.style.width) || 75;
+                const newWidth = currentWidth === 25 ? 75 : 25;
+                healthFill.style.width = newWidth + '%';
+            }
+        }, 2000);
+
+        // Интерактивные примеры кода
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 15px 35px rgba(67, 56, 202, 0.2)';
+            });
+
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1732 @@
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Godot 4: что это и с чем его едят? Или почему же вы должны научиться в нём работать! | Блог DOT</title>
+    <meta name="description" content="Полное руководство по Godot 4: особенности, преимущества, сравнение с Unity и Unreal Engine. Почему это лучший выбор для начинающих и инди-разработчиков в 2026 году.">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Фиолетово-синяя палитра DOT */
+            --primary-blue: #4338CA;
+            --secondary-blue: #4F46E5;
+            --accent-purple: #7C3AED;
+            --light-blue: #E0E7FF;
+            --dark-blue: #312E81;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gradient-main: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            --gradient-subtle: linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 100%);
+            --gradient-dark: linear-gradient(135deg, #312E81 0%, #4C1D95 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1), 0 2px 4px -1px rgba(67, 56, 202, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(67, 56, 202, 0.15);
+            --code-bg: #1a1b26;
+            --code-text: #c0caf5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --info: #3B82F6;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            margin-bottom: 20px;
+            color: var(--dark-blue);
+            background: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-blue);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-main);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 15px;
+            color: var(--dark-blue);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 25px 0 10px;
+            color: var(--primary-blue);
+        }
+
+        /* Шапка */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 20px rgba(67, 56, 202, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-purple);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            padding: 140px 0 40px;
+            background: var(--gradient-subtle);
+            margin-bottom: 40px;
+        }
+
+        .breadcrumbs-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .breadcrumbs a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--accent-purple);
+            text-decoration: underline;
+        }
+
+        /* Мета-информация статьи */
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--light-blue);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .meta-item i {
+            color: var(--primary-blue);
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Контент статьи */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 60px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 25px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            background: var(--gradient-subtle);
+            padding: 25px;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        /* Блоки кода */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--code-text);
+        }
+
+        .code-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--code-text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-blue);
+        }
+
+        .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* Примеры */
+        .example {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid var(--light-blue);
+            box-shadow: var(--shadow);
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--secondary-blue);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tip-box h4 {
+            color: var(--secondary-blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Навигация по статьям */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 60px 0;
+            padding: 30px 0;
+            border-top: 2px solid var(--light-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            width: 48%;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn.prev {
+            text-align: left;
+        }
+
+        .nav-btn.next {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .nav-btn i {
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        /* Карточки преимуществ */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--gradient-main);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 30px;
+        }
+
+        .feature-card h3 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        /* Сравнительная таблица */
+        .comparison-table {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin: 40px 0;
+            border: 2px solid var(--light-blue);
+        }
+
+        .table-header {
+            background: var(--gradient-main);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .table-cell {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-cell:not(:last-child) {
+            border-right: 1px solid var(--light-blue);
+        }
+
+        .table-cell.feature {
+            font-weight: 600;
+            color: var(--dark-blue);
+            background: #f8fafc;
+        }
+
+        .check {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .cross {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .partial {
+            color: var(--warning);
+            font-weight: bold;
+        }
+
+        /* Статистика */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            border-top: 4px solid var(--primary-blue);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            font-size: 16px;
+        }
+
+        /* Цитата с акцентом */
+        .highlight-quote {
+            background: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            color: white;
+            padding: 40px;
+            border-radius: var(--radius);
+            margin: 40px 0;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* Кто использует Godot */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .user-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+        }
+
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .user-logo {
+            height: 60px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-logo img {
+            max-height: 100%;
+            max-width: 100%;
+        }
+
+        /* Путь обучения */
+        .learning-path {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            box-shadow: var(--shadow);
+            border-left: 6px solid var(--accent-purple);
+        }
+
+        .path-step {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px dashed var(--light-blue);
+        }
+
+        .path-step:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-main);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Автор */
+        .author-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .author-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-5px);
+        }
+
+        .author-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        .author-bio {
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+
+        /* Похожие статьи */
+        .related-articles {
+            margin: 80px 0 40px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .related-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .related-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .related-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-main);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--dark-blue);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--light-blue);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--light-blue);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(67, 56, 202, 0.1);
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .article-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            .author-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .table-row {
+                grid-template-columns: 1fr;
+                border-bottom: 2px solid var(--light-blue);
+            }
+
+            .table-cell:not(:last-child) {
+                border-right: none;
+                border-bottom: 1px solid var(--light-blue);
+            }
+
+            .table-cell.feature {
+                background: #f1f5f9;
+                font-weight: 700;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .breadcrumbs {
+                padding: 100px 0 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Стили для кода */
+        .gdscript-keyword { color: #ff79c6; }
+        .gdscript-function { color: #50fa7b; }
+        .gdscript-string { color: #f1fa8c; }
+        .gdscript-comment { color: #6272a4; font-style: italic; }
+        .gdscript-number { color: #bd93f9; }
+        .gdscript-builtin { color: #8be9fd; }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="../index.html" class="nav-link">Главная</a>
+                    <a href="../blog.html" class="nav-link active">Блог</a>
+                    <a href="../index.html#about" class="nav-link">О нас</a>
+                    <a href="../index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="../index.html#plan" class="nav-link">Программа</a>
+                    <a href="../index.html#projects" class="nav-link">Проекты</a>
+                    <a href="../index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="../index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Главная</a>
+                <a href="blog.html" class="mobile-nav-link">Блог</a>
+                <a href="index.html#about" class="mobile-nav-link">О нас</a>
+                <a href="index.html#lessons" class="mobile-nav-link">Занятия</a>
+                <a href="index.html#plan" class="mobile-nav-link">Программа</a>
+                <a href="index.html#projects" class="mobile-nav-link">Проекты</a>
+                <a href="index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                <a href="index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Хлебные крошки -->
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="index.html">Главная</a>
+                <span>›</span>
+                <a href="blog.html">Блог</a>
+                <span>›</span>
+                <span>Godot 4: что это и с чем его едят?</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент статьи -->
+    <main class="container">
+        <article class="article-content fade-in">
+            <h1><span class="accent-font">Godot 4</span>: что это и с чем его едят? Или почему же вы должны научиться в нём работать!</h1>
+
+            <div class="article-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar"></i>
+                    <span>21 января 2026</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-clock"></i>
+                    <span>14 мин чтения</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-user"></i>
+                    <span>Максим Мягчило</span>
+                </div>
+                <div class="article-tag">Godot 4</div>
+                <div class="article-tag">Для начинающих</div>
+                <div class="article-tag">Сравнение движков</div>
+            </div>
+
+            <div class="highlight-quote pulse">
+                <i class="fas fa-quote-left" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
+                "Godot — это не просто очередной игровой движок. <br> Это философия разработки игр, доступная каждому."
+            </div>
+
+            <p>Если вы читаете эту статью, значит, вы хотите <del>узнать рецепт шаурмы</del> познакомиться с игровым движком Godot, но ещё не решили, а зачем оно вам вообще нужно. Возможно, вы ищете альтернативу Unity и Unreal Engine. В любом случае, вы попали куда надо!</p>
+
+            <p>В этой статье я расскажу не только <del>как приготовить шаурму</del>, что такое Godot 4, но и покажу, почему это, возможно, лучший выбор для разработчиков игр в 2026 году. Мы разберёмся, "с чем его едят" и почему вам стоит научиться работать с этим движком прямо сейчас.</p>
+
+            <h2>Что такое Godot?</h2>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-rocket"></i>
+                    Краткая справка
+                </div>
+                <p><strong>Godot</strong> — это кроссплатформенный игровой движок с открытым кодом. Первая версия появилась в 2014 году.</p>
+                <p><strong>Godot</strong> позволяет создавать игры, которые быстро работают и не требуют много ресурсов. А самое главное, Godot - очень простой для разработчиков.</p>
+            </div>
+
+            <h2>Причины, почему Godot — это пушка-бомба!</h2>
+
+            <div class="features-grid">
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Вес приложения</h3>
+                    <p>Godot весит примерно 100-150 МБ, а значит он быстро загружается и занимает мало места. <br> (Unity и Unreal Engine, что у вас лицом?)</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>GDScript</h3>
+                    <p>Простой язык программирования, основанный на Python и JavaScript. Работать в нём также легко и приятно, как пить чай холодным зимним вечером, смотря Гарри Поттера.</p>
+                </div>
+
+                <div class="feature-card fade-in">
+                    <div class="feature-icon">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <h3>Поддержка C# и C++</h3>
+                    <p>Помимо GDScript, можно использовать C# или C++ для максимальной производительности или чтобы пощекотать себе нервы.</p>
+                </div>
+            </div>
+
+            <h2>Godot в цифрах</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Бесплатный и открытый исходный код</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number">10+</div>
+                    <div class="stat-label">Экспортируемых платформ</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number">120MB</div>
+                    <div class="stat-label">Размер дистрибутива</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-number">2.5M+</div>
+                    <div class="stat-label">Скачиваний в год</div>
+                </div>
+            </div>
+
+            <h2>Сравнение с другими движками</h2>
+            <p>Чтобы понять, насколько Godot конкурентоспособен, давайте сравним его с другими популярными движками (ни в коем случае не умоляем заслуг других движков, но считаем, что именно Godot - идеальный движок для старта):</p>
+
+            <div class="comparison-table">
+                <div class="table-header">Сравнение игровых движков 2026 года</div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Критерий</div>
+                    <div class="table-cell" style="font-weight: 600; color: var(--primary-blue);">Godot 4</div>
+                    <div class="table-cell">Unity</div>
+                    <div class="table-cell">Unreal Engine 5</div>
+                </div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Цена</div>
+                    <div class="table-cell"><span class="check">Бесплатно (MIT)</span></div>
+                    <div class="table-cell"><span class="partial">Бесплатно до $100к</span></div>
+                    <div class="table-cell"><span class="partial">5% роялти</span></div>
+                </div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Размер движка</div>
+                    <div class="table-cell"><span class="check">~120 МБ</span></div>
+                    <div class="table-cell">~5 ГБ</div>
+                    <div class="table-cell">~100 ГБ</div>
+                </div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Сложность изучения</div>
+                    <div class="table-cell"><span class="check">Легко</span></div>
+                    <div class="table-cell">Чуть сложнее</div>
+                    <div class="table-cell"><span class="cross">Ещё чуть сложнее</span></div>
+                </div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Поддержка 2D</div>
+                    <div class="table-cell"><span class="check">Отличная</span></div>
+                    <div class="table-cell"><span class="check">Отличная</span></div>
+                    <div class="table-cell">Средняя</div>
+                </div>
+
+
+                <div class="table-row">
+                    <div class="table-cell feature">Поддержка 3D</div>
+                    <div class="table-cell"><span class="check">Хорошая</span></div>
+                    <div class="table-cell"><span class="check">Отличная</span></div>
+                    <div class="table-cell"><span class="check">Лучшая</span></div>
+                </div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Языки программирования</div>
+                    <div class="table-cell">GDScript, C#, C++</div>
+                    <div class="table-cell">C#</div>
+                    <div class="table-cell">C++, Blueprints</div>
+                </div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Мобильная разработка</div>
+                    <div class="table-cell"><span class="check">Отличная</span></div>
+                    <div class="table-cell"><span class="check">Отличная</span></div>
+                    <div class="table-cell"><span class="partial">Средняя</span></div>
+                </div>
+
+                <div class="table-row">
+                    <div class="table-cell feature">Русскоязычное комьюнити</div>
+                    <div class="table-cell"><span class="check">Активное</span></div>
+                    <div class="table-cell"><span class="check">Большое</span></div>
+                    <div class="table-cell"><span class="partial">Среднее</span></div>
+                </div>
+            </div>
+
+            <h2>Кому подходит Godot?</h2>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-user-graduate"></i> Начинающие разработчики</h4>
+                <p><strong>Идеальный выбор!</strong> Простой интерфейс, понятный язык программирования GDScript (похож на Python), мгновенная обратная связь. Вы можете создать первую игру уже через пару часов обучения.</p>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-gamepad"></i> Инди-разработчики</h4>
+                <p><strong>Отличный вариант!</strong> Бесплатный движок без роялти означает, что вы получаете 100% прибыли от своих игр. А требования и вес движка не требуют мощного ПК для разработки.</p>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-briefcase"></i> Профессионалы из других движков</h4>
+                <p><strong>Стоит попробовать!</strong> Если вы хотите попробовать что-то новое, то Godot предложит свежий взгляд на разработку игр.</p>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-graduation-cap"></i> Преподаватели и студенты</h4>
+                <p><strong>Лучший учебный инструмент!</strong> Открытый исходный код, простота изучения и кроссплатформенность делают Godot идеальным для образовательных целей.</p>
+            </div>
+
+            <h2>Что можно сделать на Godot?</h2>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-trophy"></i>
+                    Реальные примеры успешных игр
+                </div>
+                <p>Godot — это не просто учебный инструмент. На нём создаются коммерчески успешные игры:</p>
+                <ul>
+                    <li><strong>Brotato</strong> — rogue-lite экшен, проданный в 1+ миллионах копий</li>
+                    <li><strong>Cassette Beasts</strong> — покемоно-подобная RPG с высокими оценками критиков</li>
+                    <li><strong>Dome Keeper</strong> — инди-хит с уникальным геймплеем</li>
+                    <li><strong>Heavenly Bodies</strong> — физическая головоломка с премией BAFTA</li>
+                </ul>
+            </div>
+
+            <h2>Почему именно в 2026 году стоит учить Godot?</h2>
+
+            <div class="learning-path">
+                <h3 style="margin-top: 0; text-align: center; color: var(--accent-purple);">Идеальный момент для старта</h3>
+
+                <div class="path-step">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h4>Движок отлично работает</h4>
+                        <p>После выпуска в 2023 году движок прошёл через множество обновлений, исправлений ошибок и улучшений. <br>В 2026 году Godot — это стабильный, надёжный инструмент.</p>
+                    </div>
+                </div>
+
+                <div class="path-step">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h4>Растёт количество разработчиков</h4>
+                        <p>Всё больше студий начинают создавать игры на Godot, создавая спрос на специалистов. Знание и умение работать в Godot становится конкурентным преимуществом на рынке геймдева.</p>
+                    </div>
+                </div>
+
+                <div class="path-step">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h4>Богатая экосистема</h4>
+                        <p>Появились тысячи плагинов, ассетов, готовых решений и обучающих материалов. Вам не придётся изобретать велосипед — большинство задач уже решено сообществом.</p>
+                    </div>
+                </div>
+
+                <div class="path-step">
+                    <div class="step-number">4</div>
+                    <div>
+                        <h4>Поддержка крупных компаний</h4>
+                        <p>Godot Foundation получает поддержку от Microsoft, Meta, SEGA и других гигантов индустрии, что гарантирует долгосрочное развитие движка.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Как начать работать с Godot?</h2>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-download"></i>
+                        Шаг 1: Установка
+                    </div>
+                </div>
+                <pre><code class="language-bash"># Официальный сайт для скачивания
+https://godotengine.org/download
+
+# Выберите версию:
+# - Standard version: для большинства пользователей
+# - .NET version: для работы с C#
+
+# Размер: ~50 МБ
+# Установка: просто распакуйте архив</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Первые шаги после установки</h4>
+                <ol>
+                    <li>Создайте новый проект (2D, 3D или просто "Пустой проект") <video width="800" src="pageGodotMain/create.mp4" playsinline autoplay muted loop></video></li>
+                    <li>Изучите интерфейс: Scene, Inspector, FileSystem, Node Tree <video width="800" src="pageGodotMain/game.mp4" playsinline autoplay muted loop></video></li>
+                    <li>Создайте первый скрипт и добавьте его к узлу. Запустите сцену кнопкой F5 или нажатием на Play<video width="800" playsinline autoplay muted loop src="pageGodotMain/script.mp4"></video></li>
+                </ol>
+            </div>
+
+            <h3>Пример кода на GDScript 2.0 для Godot 4</h3>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Простое движение 2D персонажа
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody2D
+
+# Типизированные переменные
+@export var speed: float = 300.0
+@export var jump_velocity: float = -400.0
+
+# Получаем ссылку на анимацию
+@onready var animation_player: AnimationPlayer = $AnimationPlayer
+
+func _physics_process(delta: float) -> void:
+    # Применяем гравитацию
+    if not is_on_floor():
+        velocity.y += get_gravity() * delta
+
+    # Обработка прыжка
+    if Input.is_action_just_pressed("ui_accept") and is_on_floor():
+        velocity.y = jump_velocity
+        animation_player.play("jump")
+
+    # Применяем движение
+    move_and_slide()</code></pre>
+            </div>
+
+            <h2>Мифы о Godot</h2>
+
+            <div class="example">
+                <div class="example-header">
+                    <i class="fas fa-times-circle"></i>
+                    Разрушаем стереотипы
+                </div>
+
+                <h4>Миф 1: "Godot подходит только для 2D игр"</h4>
+                <p><strong>Правда:</strong> Godot 4 получил полноценный PBR-рендерер, поддержку Vulkan, систему LOD, SDFGI для глобального освещения. Он отлично справляется с 3D.</p>
+
+                <h4>Миф 2: "GDScript — медленный язык"</h4>
+                <p><strong>Правда:</strong> GDScript 2.0 существенно ускорен, а для критичных к производительности участков можно использовать C# или C++.</p>
+
+                <h4>Миф 3: "Мало обучающих материалов"</h4>
+                <p><strong>Правда:</strong> В 2026 году существует огромное количество туториалов, курсов, документации и книг на русском и английском языках.</p>
+
+                <h4>Миф 4: "Нет поддержки крупных студий"</h4>
+                <p><strong>Правда:</strong> Такие компании как SEGA, Microsoft, Oculus активно поддерживают развитие Godot. Даже Epic Games (создатели Unreal Engine) делают финансовые вложения.</p>
+            </div>
+
+            <h2>Кто уже использует Godot?</h2>
+
+            <div class="users-grid">
+                <div class="user-card">
+                    <div class="user-logo">
+                        <i class="fas fa-gamepad" style="font-size: 40px; color: var(--primary-blue);"></i>
+                    </div>
+                    <h4>Инди-студии</h4>
+                    <p>Тысячи независимых разработчиков по всему миру создают игры на Godot.</p>
+                </div>
+
+                <div class="user-card">
+                    <div class="user-logo">
+                        <i class="fas fa-building" style="font-size: 40px; color: var(--primary-blue);"></i>
+                    </div>
+                    <h4>Корпорации</h4>
+                    <p>Для создания интерактивных презентаций, симуляторов и инструментов.</p>
+                </div>
+
+                <div class="user-card">
+                    <div class="user-logo">
+                        <i class="fas fa-mobile-alt" style="font-size: 40px; color: var(--primary-blue);"></i>
+                    </div>
+                    <h4>Мобильные разработчики</h4>
+                    <p>Отличная производительность на Android и iOS при малом размере приложения.</p>
+                </div>
+            </div>
+
+            <div class="highlight-quote">
+                <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px; display: block;"></i>
+                Игровая индустрия меняется. <br>Сегодня успех определяют не бюджеты, а оригинальные идеи и эффективные инструменты.<br> Godot даёт и то, и другое.
+            </div>
+
+            <h2>Так почему же стоит выбрать Godot?</h2>
+
+            <p>Godot — это не просто "ещё один игровой движок". Это:</p>
+            <ul>
+                <li><strong>Доступность</strong> — разработка игр очень простая и доступна каждому</li>
+                <li><strong>Технология будущего</strong> — современный рендерер, производительность, кроссплатформенность</li>
+                <li><strong>Сообщество единомышленников</strong> — открытое, дружелюбное, готовое помочь</li>
+                <li><strong>Экономическая свобода</strong> — никаких роялти, 100% вашей прибыли остаётся у вас</li>
+            </ul>
+
+            <p>В 2026 году игровая индустрия стала более демократичной. Сегодня небольшая команда или даже одиночный разработчик могут создать игру, которая покорит миллионы игроков. И Godot — это идеальный инструмент для такой задачи.</p>
+
+            <p>Неважно, новичок вы или опытный разработчик — Godot предлагает уникальное сочетание простоты изучения и мощных возможностей. Это движок, который растёт вместе с вами.</p>
+
+            <div style="text-align: center; margin: 50px 0;">
+                <a href="index.html#form" class="btn" style="font-size: 1.2rem; padding: 18px 40px;">
+                    <i class="fas fa-gamepad"></i> Начать изучение Godot прямо сейчас!
+                </a>
+                <p style="margin-top: 15px; color: var(--text-light); font-size: 14px;">Первое пробное занятие — бесплатно!</p>
+            </div>
+
+            <!-- Навигация по статьям -->
+            <div class="article-navigation fade-in">
+                <a href="#" class="nav-btn prev">
+                    <i class="fas fa-arrow-left"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Предыдущая статья</div>
+                        <div style="font-weight: 600;">Как работать с Area в Godot: версия для 2D-игр</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-btn next">
+                    <i class="fas fa-arrow-right"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Следующая статья</div>
+                        <div style="font-weight: 600;">Мастер-класс: как создать простой кликер в Godot</div>
+                    </div>
+                </a>
+            </div>
+        </article>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. Мы помогаем создавать игры.<br><br> Блог DOT — это собрание полезных материалов для начинающих разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Godot 4</a></li>
+                        <li><a href="#">Для начинающих</a></li>
+                        <li><a href="#">Сравнение движков</a></li>
+                        <li><a href="#">3D графика</a></li>
+                        <li><a href="#">GDScript</a></li>
+                        <li><a href="#">Карьера в геймдеве</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        // Мобильное меню
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Закрытие меню при клике на ссылку
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        // Фиксированная шапка при скролле
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    // Закрываем мобильное меню если открыто
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Копирование кода
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codeBlock = this.closest('.code-block');
+                const code = codeBlock.querySelector('code').textContent;
+
+                // Копируем в буфер обмена
+                navigator.clipboard.writeText(code).then(() => {
+                    // Визуальная обратная связь
+                    const originalText = this.textContent;
+                    this.textContent = 'Скопировано!';
+                    this.style.background = '#10B981';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Анимация появления элементов
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    entry.target.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            observer.observe(el);
+        });
+
+        // Интерактивная таблица сравнения
+        document.querySelectorAll('.table-row:not(:first-child)').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#f8fafc';
+            });
+
+            row.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = '';
+            });
+        });
+
+        // Подсветка Godot в таблице сравнения
+        const godotCells = document.querySelectorAll('.table-row .table-cell:nth-child(2)');
+        godotCells.forEach(cell => {
+            if (!cell.classList.contains('feature')) {
+                cell.style.fontWeight = '600';
+                cell.style.backgroundColor = 'rgba(67, 56, 202, 0.05)';
+            }
+        });
+
+        // Анимация статистики при прокрутке
+        const statNumbers = document.querySelectorAll('.stat-number');
+        const statObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const stat = entry.target;
+                    const finalValue = stat.textContent;
+
+                    // Если это процент, анимируем от 0
+                    if (finalValue.includes('%')) {
+                        let current = 0;
+                        const target = parseInt(finalValue);
+                        const increment = target / 30;
+
+                        const timer = setInterval(() => {
+                            current += increment;
+                            if (current >= target) {
+                                current = target;
+                                clearInterval(timer);
+                            }
+                            stat.textContent = Math.floor(current) + '%';
+                        }, 50);
+                    }
+
+                    statObserver.unobserve(stat);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        statNumbers.forEach(stat => {
+            statObserver.observe(stat);
+        });
+
+        // Интерактивные карточки преимуществ
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+                setTimeout(() => {
+                    this.style.transform = 'translateY(-10px)';
+                }, 150);
+            });
+        });
+
+        // Интерактивный план обучения
+        document.querySelectorAll('.path-step').forEach(step => {
+            step.addEventListener('click', function() {
+                const number = this.querySelector('.step-number');
+                number.style.transform = 'scale(1.2)';
+                number.style.backgroundColor = '#7C3AED';
+
+                setTimeout(() => {
+                    number.style.transform = 'scale(1)';
+                    setTimeout(() => {
+                        number.style.backgroundColor = '';
+                    }, 300);
+                }, 300);
+            });
+        });
+
+        // Пульсирующая кнопка CTA
+        const ctaButton = document.querySelector('.btn[href*="#form"]');
+        if (ctaButton) {
+            setInterval(() => {
+                ctaButton.classList.toggle('pulse');
+            }, 4000);
+        }

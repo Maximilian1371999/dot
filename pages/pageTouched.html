@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7 скриптов на касание в Godot | Блог DOT</title>
+    <meta name="description" content="Изучите 10 полезных скриптов для взаимодействия с Area2D в Godot Engine. Примеры действий при касании объектов: от перезагрузки уровня до изменения физики игры.">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Фиолетово-синяя палитра DOT */
+            --primary-blue: #4338CA;
+            --secondary-blue: #4F46E5;
+            --accent-purple: #7C3AED;
+            --light-blue: #E0E7FF;
+            --dark-blue: #312E81;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gradient-main: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            --gradient-subtle: linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 100%);
+            --gradient-dark: linear-gradient(135deg, #312E81 0%, #4C1D95 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1), 0 2px 4px -1px rgba(67, 56, 202, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(67, 56, 202, 0.15);
+            --code-bg: #1a1b26;
+            --code-text: #c0caf5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--dark-blue);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-blue);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-main);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 15px;
+            color: var(--dark-blue);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 25px 0 10px;
+            color: var(--primary-blue);
+        }
+
+        /* Шапка */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 20px rgba(67, 56, 202, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-purple);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            padding: 140px 0 40px;
+            background: var(--gradient-subtle);
+            margin-bottom: 40px;
+        }
+
+        .breadcrumbs-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .breadcrumbs a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--accent-purple);
+            text-decoration: underline;
+        }
+
+        /* Мета-информация статьи */
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--light-blue);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .meta-item i {
+            color: var(--primary-blue);
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Контент статьи */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 60px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 25px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        /* Блоки кода */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--code-text);
+        }
+
+        .code-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--code-text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-blue);
+        }
+
+        .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* Контейнер для скрипта и примера */
+        .script-example-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+            align-items: start;
+        }
+
+        @media (max-width: 768px) {
+            .script-example-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Примеры */
+        .example {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            border: 2px solid var(--light-blue);
+            box-shadow: var(--shadow);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        .example-visual {
+            background: var(--gradient-subtle);
+            border-radius: 8px;
+            padding: 100px;
+            margin: 15px 0;
+            text-align: center;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .example-visual::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-main);
+        }
+
+        .up-down {
+             animation: floatUpDown 2s infinite alternate; bottom: 30px;
+        }
+
+        .down-up {
+             animation: floatDownUp 2s infinite alternate; bottom: 30px;
+        }
+
+        .visual-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--accent-purple);
+        }
+
+        .visual-player {
+            width: 30px;
+            height: 30px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 20px;
+            left: 10%;
+            animation: playerMove 15s infinite alternate;
+        }
+
+        .visual-player span {
+            margin: 40px;
+        }
+
+        .visual-area {
+            width: 160px;
+            height: 100px;
+            border: 3px dashed var(--accent-purple);
+            border-radius: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .visual-effect {
+            width: 20px;
+            height: 20px;
+            background: var(--danger);
+            border-radius: 50%;
+            position: absolute;
+            opacity: 0;
+        }
+
+        .visual-text {
+            font-weight: 600;
+            color: var(--dark-blue);
+            margin-top: 70px;
+        }
+
+        .example-steps {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+
+        .example-steps li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .example-steps li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-purple);
+            font-weight: bold;
+        }
+
+        .example-interactive {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--light-bg);
+            border-radius: 8px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .interactive-btn {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .interactive-btn:hover {
+            background: var(--secondary-blue);
+            transform: translateY(-2px);
+        }
+
+        .interactive-result {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid var(--light-blue);
+            display: none;
+        }
+
+        .interactive-result.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .teleport-to-center {
+            bottom: 50%;
+            left: 50%;
+        }
+
+        @keyframes teleportPortal {
+            0% { bottom: 50%; left: 20%; }
+            100% { bottom: 50%; left: 80%; }
+        }
+
+        /* Анимация для визуализации */
+        @keyframes playerMove {
+            0% { transform: translateX(-50%) translateY(0); }
+            15% { transform: translateX(-50%) translateY(-210px); }
+            50% { transform: translateX(400px) translateY(-210px); }
+            65% { transform: translateX(400px) translateY(0); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes floatUpDown {
+                                0% { transform: translateX(-50%) translateY(0); }
+                                100% { transform: translateX(-50%) translateY(-100px); }
+                            }
+
+        @keyframes floatDownUp {
+                                0% { transform: translateY(-200px); left: 50%; }
+                                100% { transform: translateY(0); left: 50%; }
+                            }
+
+        /* Индикаторы */
+        .indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .indicator-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .indicator-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .indicator-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        /* Tip box */
+        .tip-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--secondary-blue);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tip-box h4 {
+            color: var(--secondary-blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Навигация по статьям */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 60px 0;
+            padding: 30px 0;
+            border-top: 2px solid var(--light-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            width: 48%;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn.prev {
+            text-align: left;
+        }
+
+        .nav-btn.next {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .nav-btn i {
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        /* Автор */
+        .author-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .author-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-5px);
+        }
+
+        .author-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        .author-bio {
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+
+        /* Похожие статьи */
+        .related-articles {
+            margin: 80px 0 40px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .related-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .related-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .related-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-main);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--dark-blue);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--light-blue);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--light-blue);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(67, 56, 202, 0.1);
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .article-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            .author-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .breadcrumbs {
+                padding: 100px 0 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        /* Стили для кода */
+        .gdscript-keyword { color: #ff79c6; }
+        .gdscript-function { color: #50fa7b; }
+        .gdscript-string { color: #f1fa8c; }
+        .gdscript-comment { color: #6272a4; font-style: italic; }
+        .gdscript-number { color: #bd93f9; }
+        .gdscript-builtin { color: #8be9fd; }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="../index.html" class="nav-link">Главная</a>
+                    <a href="../blog.html" class="nav-link active">Блог</a>
+                    <a href="../index.html#about" class="nav-link">О нас</a>
+                    <a href="../index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="../index.html#plan" class="nav-link">Программа</a>
+                    <a href="../index.html#projects" class="nav-link">Проекты</a>
+                    <a href="../index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="../index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="../index.html" class="mobile-nav-link">Главная</a>
+                    <a href="../blog.html" class="mobile-nav-link active">Блог</a>
+                    <a href="../index.html#about" class="mobile-nav-link">О нас</a>
+                    <a href="../index.html#lessons" class="mobile-nav-link">Занятия</a>
+                    <a href="../index.html#plan" class="mobile-nav-link">Программа</a>
+                    <a href="../index.html#projects" class="mobile-nav-link">Проекты</a>
+                    <a href="../index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                    <a href="../index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Хлебные крошки -->
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="index.html">Главная</a>
+                <span>›</span>
+                <a href="blog.html">Блог</a>
+                <span>›</span>
+                <span>7 скриптов на касание в Godot</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент статьи -->
+    <main class="container">
+        <article class="article-content fade-in">
+            <h1>ТОП 7 скриптов на касание в Godot: от перезагрузки уровня до уничтожения предметов!</h1>
+
+            <div class="article-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar"></i>
+                    <span>30 января 2026</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-clock"></i>
+                    <span>15 мин чтения</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-user"></i>
+                    <span>Максим Мягчило</span>
+                </div>
+                <div class="article-tag">GDScript</div>
+                <div class="article-tag">Area2D</div>
+                <div class="article-tag">Взаимодействие</div>
+            </div>
+
+            <p>В этой статье мы рассмотрим 10 скриптов, которые срабатывают при касании игроком различных зон. Каждый пример включает код, визуализацию и практическое применение.
+            <br><b>Если ещё не читали статью про Area2D, то почитайте. Ибо эта статья - продолжение той темы!</b></p>
+
+            <blockquote>
+                Используйте интерактивные элементы рядом с кодом!<br/> Нажимайте кнопки, чтобы увидеть, как работает логика касания в реальном времени.
+            </blockquote>
+
+            <p>Для реализации этих скриптов, вам нужно создать узел Area.
+                <br>Далее создать внутри него CollisionShape или CollisionPolygon (или их 2D версии) по размерам предмета, которого коснётся игрок.</p>
+
+
+            <h2>1. Перезагрузка уровня при касании</h2>
+            <p>Идеально для смертельных зон, лавы или ям. Когда игрок касается такой зоны, уровень перезагружается.</p>
+
+            <div class="script-example-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-redo"></i>
+                            Скрипт перезагрузки уровня
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Area2D
+
+# Время перед перезагрузкой, если нужно, чтобы уровень не сразу перезагружался
+export var reload_delay = 1.0
+
+func _ready():
+    connect("body_entered", self, "_on_body_entered")
+
+func _on_body_entered(body):
+    if body.name == "Player":
+        print("Игрок коснулся смертельной зоны!")
+
+        # Чтобы было интереснее можно добавить эффекты
+        $AudioStreamPlayer2D.play()
+
+        # Активируем таймер
+        yield(get_tree().create_timer(reload_delay), "timeout")
+
+        # Перезагружаем текущую сцену
+        get_tree().reload_current_scene()</code></pre>
+                </div>
+
+                <div class="example">
+                    <div class="example-header">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Визуализация работы
+                    </div>
+                    <div class="example-visual" id="visual1">
+                        <div class="visual-area">
+                            <i class="fas fa-fire visual-icon"></i>
+                        </div>
+                        <div class="visual-player" id="player1"><span>Игрок</span></div>
+                        <div class="visual-text">Зона лавы</div>
+                    </div>
+                    <p><strong>Как это работает:</strong> При касании зоны игрок "погибает", и уровень перезагружается через 1 секунду.</p>
+                    <div class="example-interactive">
+                        <p><strong>Попробуйте:</strong> Нажмите кнопку, чтобы увидеть, что происходит при касании</p>
+                        <button class="interactive-btn" onclick="simulateDeathZone()">Коснуться зоны</button>
+                        <div class="interactive-result" id="result1">
+                            <p><i class="fas fa-skull-crossbones"></i> Игрок коснулся лавы! Уровень перезагружается...</p>
+                            <div class="indicator indicator-danger">Смертельная зона</div>
+                            <div class="indicator indicator-warning">Перезагрузка через 1 сек</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>2. Увеличение скорости персонажа</h2>
+            <p>С помощью Area, можно создать зоны ускорения, например, для гоночных игр. При касании с такой зоной скорость игрока временно увеличивается.</p>
+
+            <div class="script-example-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-running"></i>
+                            Скрипт ускорения персонажа
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Area2D
+
+# Множитель скорости
+export var speed_multiplier = 1.5
+# Длительность эффекта
+export var effect_duration = 3.0
+
+func _ready():
+    connect("body_entered", self, "_on_body_entered")
+
+func _on_body_entered(body):
+    if body.name == "Player":
+        var player = body
+        var original_speed = player.speed
+
+        # Увеличиваем скорость
+        player.speed = original_speed * speed_multiplier
+
+        # Запускаем таймер для возврата
+        yield(get_tree().create_timer(effect_duration), "timeout")
+</code></pre>
+                </div>
+
+                <div class="example">
+                    <div class="example-header">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Пример в игре
+                    </div>
+                    <div class="example-visual" id="visual2">
+                        <div class="visual-area">
+                            <i class="fas fa-bolt visual-icon"></i>
+                        </div>
+                        <div class="visual-player" id="player2"><span>Игрок</span></div>
+                        <div class="visual-text">Зона ускорения</div>
+                    </div>
+                    <p><strong>Применение:</strong> Гоночные трассы, платформеры с секциями ускорения.</p>
+                    <div class="example-steps">
+                        <li>Игрок входит в зону ускорения</li>
+                        <li>Скорость увеличивается в 1.5 раза</li>
+                        <li>Эффект длится 3 секунды</li>
+                        <li>Возвращается обычная скорость</li>
+                    </div>
+                    <div class="example-interactive">
+                        <p><strong>Текущая скорость:</strong> <span id="speedValue">100</span> единиц</p>
+                        <button class="interactive-btn" onclick="applySpeedBoost()">Активировать ускорение</button>
+                        <div class="indicator indicator-success" id="boostIndicator" style="display: none;">Ускорение активно</div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>3. Уничтожение предмета при касании</h2>
+            <p>Также с помощью Area можно создать объекты, которые разрушаются при прикосновении игрока.</p>
+
+            <div class="script-example-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-bomb"></i>
+                            Скрипт разрушаемого объекта
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Area2D
+
+# Префаб для эффекта разрушения
+export(PackedScene) var destruction_effect
+
+func _ready():
+    connect("body_entered", self, "_on_body_entered")
+
+func _on_body_entered(body):
+    if body.name == "Player":
+        # Проигрываем звук разрушения
+        $AudioStreamPlayer2D.play()
+
+        # Создаём эффект разрушения
+        if destruction_effect:
+            var effect = destruction_effect.instance()
+            get_parent().add_child(effect)
+            effect.global_position = global_position
+
+        # Отключаем коллизию и скрываем
+        $CollisionShape2D.disabled = true
+        $Sprite.visible = false
+
+        # Удаляем через 2 секунды
+        yield(get_tree().create_timer(2.0), "timeout")
+        queue_free()
+                    </code></pre>
+                </div>
+
+                <div class="example">
+                    <div class="example-header">
+                        <i class="fas fa-cube"></i>
+                        Визуализация разрушения
+                    </div>
+                    <div class="example-visual" id="visual3">
+                        <div class="visual-area">
+                            <i class="fas fa-cube visual-icon" id="breakableCube"></i>
+                        </div>
+                        <div class="visual-player" id="player3"><span>Игрок</span></div>
+                        <div class="visual-text">Хрупкий ящик</div>
+                    </div>
+                    <p><strong>Типы объектов:</strong> Ящики, вазы, бочки, стеклянные препятствия.</p>
+                    <div class="example-interactive">
+                        <p><strong>Состояние объекта:</strong> <span id="objectState">Целый</span></p>
+                        <button class="interactive-btn" onclick="breakObject()">Разрушить объект</button>
+                        <div class="interactive-result" id="result3">
+                            <p><i class="fas fa-exclamation-circle"></i> Объект разрушен! Появились монеты.</p>
+                            <div class="indicator indicator-warning">+10 очков</div>
+                            <div class="indicator indicator-success">+3 монеты</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>4. Телепортация между зонами</h2>
+            <p>Также мы можем создавать порталы для мгновенного перемещения по уровню.</p>
+
+            <div class="script-example-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-random"></i>
+                            Скрипт телепорта
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Area2D
+
+# Связанный портал
+export(NodePath) var linked_portal_path
+var linked_portal = null
+
+# Время перезарядки
+export var cooldown = 1.0
+var can_teleport = true
+
+func _ready():
+    if linked_portal_path:
+        linked_portal = get_node(linked_portal_path)
+
+    connect("body_entered", self, "_on_body_entered")
+
+func _on_body_entered(body):
+    if body.name == "Player" and can_teleport and linked_portal:
+        can_teleport = false
+
+        # Эффект телепортации
+        $AnimationPlayer.play("teleport_out")
+        yield($AnimationPlayer, "animation_finished")
+
+        # Перемещаем игрока
+        body.global_position = linked_portal.global_position
+
+        # Перезарядка
+        yield(get_tree().create_timer(cooldown), "timeout")</code></pre>
+                </div>
+
+                <div class="example">
+                    <div class="example-header">
+                        <i class="fas fa-door-open"></i>
+                        Система порталов
+                    </div>
+                    <div class="example-visual" style="position: relative; height: 250px;">
+                        <div class="visual-area" style="left: 30%; background: rgba(67, 56, 202, 0.2);">
+                            <i class="fas fa-arrow-right visual-icon"></i>
+                            <div style="font-size: 12px; margin-top: 5px;">Портал A</div>
+                        </div>
+                        <div class="visual-area" style="left: 70%; background: rgba(124, 58, 237, 0.2);">
+                            <i class="fas fa-arrow-left visual-icon"></i>
+                            <div style="font-size: 12px; margin-top: 5px;">Портал B</div>
+                        </div>
+                        <div class="visual-player" id="player4"><span>Игрок</span></div>
+                        <div style="position: absolute; top: 50%; left: 40%; right: 40%; height: 2px; background: var(--accent-purple);"></div>
+                    </div>
+                    <p><strong>Использование:</strong> Быстрое перемещение, скрытые комнаты, выходы с уровня.</p>
+                    <div class="example-interactive">
+                        <p><strong>Положение игрока:</strong> <span id="playerPosition">У портала A</span></p>
+                        <button class="interactive-btn" onclick="teleportPlayer()">Активировать телепорт</button>
+                        <div class="interactive-result" id="result4">
+                            <p><i class="fas fa-magic"></i> Игрок телепортирован к порталу B!</p>
+                            <div class="indicator indicator-success">Телепорт успешен</div>
+                            <div class="indicator indicator-warning">Перезарядка: 1 сек</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2>5. Изменение гравитации в зоне</h2>
+            <p>Ещё вы можете создавать антигравитационные зоны или участки с изменённой физикой.</p>
+
+            <div class="script-example-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-feather-alt"></i>
+                            Скрипт изменения гравитации
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Area2D
+
+# Новая гравитация
+export var new_gravity = -200.0
+# Исходная гравитация
+var original_gravity = 980
+
+func _ready():
+    connect("body_entered", self, "_on_body_entered")
+    connect("body_exited", self, "_on_body_exited")
+
+func _on_body_entered(body):
+    if body.name == "Player" and body.has_method("set_gravity"):
+        body.set_gravity(new_gravity)
+        $Particles2D.emitting = true
+        $AudioStreamPlayer2D.play()
+
+func _on_body_exited(body):
+    if body.name == "Player" and body.has_method("set_gravity"):
+        body.set_gravity(original_gravity)
+        $Particles2D.emitting = false</code></pre>
+                </div>
+
+                <div class="example">
+                    <div class="example-header">
+                        <i class="fas fa-weightless"></i>
+                        Антигравитационная комната
+                    </div>
+                    <div class="example-visual" style="height: 300px;">
+                        <div class="visual-area" style="width: 60%; height: 40%;">
+                            <i class="fas fa-feather visual-icon"></i>
+                        </div>
+                        <div class="visual-player up-down" id="player5"><span>Игрок</span></div>
+                        <div class="visual-text">Зона высокой гравитации</div>
+                    </div>
+                    <p><strong>Эффекты:</strong> Маленький прыжок.</p>
+                    <div class="example-interactive">
+                        <p><strong>Текущая гравитация:</strong> <span id="gravityValue">980</span> единиц</p>
+                        <button class="interactive-btn" onclick="changeGravity()">Войти в зону</button>
+                        <button class="interactive-btn btn-outline" onclick="resetGravity()" style="margin-left: 10px;">Выйти из зоны</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Профессиональный совет</h4>
+                <p>Комбинируйте несколько зон для создания сложных механик. <br>Например, зона ускорения + зона низкой гравитации = супер-прыжок!</p>
+            </div>
+
+            <h2>6. Открытие/закрытие дверей</h2>
+            <p>Следующее, что мы рассмотрим - это зоны-триггеры для автоматических дверей.</p>
+
+            <div class="script-example-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-door-closed"></i>
+                            Скрипт автоматической двери
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Area2D
+
+# Ссылка на дверь
+export(NodePath) var door_path
+var door = null
+
+# Направление открытия
+export var open_offset = Vector2(0, -64)
+var is_open = false
+
+func _ready():
+    if door_path:
+        door = get_node(door_path)
+
+    connect("body_entered", self, "_on_body_entered")
+    connect("body_exited", self, "_on_body_exited")
+
+func _on_body_entered(body):
+    if body.name == "Player" and not is_open:
+        open_door()
+
+func _on_body_exited(body):
+    if body.name == "Player" and is_open:
+        close_door()
+
+func open_door():
+    is_open = true
+    $AnimationPlayer.play("open")
+
+func close_door():
+    is_open = false
+    $AnimationPlayer.play("close")</code></pre>
+                </div>
+
+                <div class="example">
+                    <div class="example-header">
+                        <i class="fas fa-door-open"></i>
+                        Автоматическая дверь
+                    </div>
+                    <div class="example-visual" style="height: 180px; position: relative;">
+                        <div style="position: absolute; width: 80px; height: 120px; background: linear-gradient(135deg, #8B5A2B 0%, #654321 100%); left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; transition: all 0.5s;" id="doorVisual">
+                            <i class="fas fa-door-closed"></i>
+                        </div>
+                        <div style="position: absolute; bottom: 10px; left: 0; right: 0; text-align: center;">
+                            <div class="visual-text">Автоматическая дверь</div>
+                            <div class="indicator" id="doorStatus">Закрыта</div>
+                        </div>
+                    </div>
+                    <p><strong>Применение:</strong> Шлюзы, секретные комнаты, лифты, переходы между зонами.</p>
+                    <div class="example-interactive">
+                        <p><strong>Состояние двери:</strong> <span id="doorStateText">Закрыта</span></p>
+                        <p><strong>Игрок в зоне:</strong> <span id="playerInZone">Нет</span></p>
+                        <button class="interactive-btn" onclick="playerEnterDoorZone()">Игрок подошёл</button>
+                        <button class="interactive-btn btn-outline" onclick="playerLeaveDoorZone()">Игрок ушёл</button>
+                    </div>
+                </div>
+            </div>
+
+            <h2>7. Сбор предметов с разными эффектами</h2>
+            <p>Теперь рассмотрим, как собирать предметы с разными эффектами (действиями).</p>
+
+            <div class="script-example-container">
+                <div class="code-block">
+                    <div class="code-header">
+                        <div class="code-title">
+                            <i class="fas fa-gem"></i>
+                            Скрипт собираемого предмета
+                        </div>
+                        <button class="copy-btn">Копировать</button>
+                    </div>
+                    <pre><code class="language-gdscript">extends Area2D
+
+# Тип предмета
+export var item_type = 0  # 0=монета, 1=здоровье, 2=звезда
+export var value = 1
+
+func _ready():
+    connect("body_entered", self, "_on_body_entered")
+    update_appearance()
+
+func update_appearance():
+    match item_type:
+        0:  # Монета
+            $Sprite.texture = preload("coin.png")
+        1:  # Здоровье
+            $Sprite.texture = preload("heart.png")
+        2:  # Звезда
+            $Sprite.texture = preload("star.png")
+
+func _on_body_entered(body):
+    if body.name == "Player":
+        apply_effect(body)
+        collect()
+
+func apply_effect(player):
+    match item_type:
+        0:  # Монета
+            Global.coins += value
+        1:  # Здоровье
+            player.heal(value)
+        2:  # Звезда
+            Global.points += value
+
+func collect():
+    $AnimationPlayer.play("collect")
+    $CollisionShape2D.disabled = true
+    yield($AnimationPlayer, "animation_finished")
+    queue_free()</code></pre>
+                </div>
+
+                <div class="example">
+                    <div class="example-header">
+                        <i class="fas fa-star"></i>
+                        Типы предметов <br>(нажатие на предмет обозначает касание с ним)
+                    </div>
+                    <div class="example-visual" style="height: 130px; display: flex; justify-content: space-around; align-items: center; flex-direction: row;">
+                        <div class="collectible-item" data-type="coin" onclick="collectItem('coin')">
+                            <i class="fas fa-coins" style="font-size: 40px; color: #F59E0B;"></i>
+                            <div style="font-size: 12px; margin-top: 5px;">Монета</div>
+                        </div>
+                        <div class="collectible-item" data-type="heart" onclick="collectItem('heart')">
+                            <i class="fas fa-heart" style="font-size: 40px; color: #EF4444;"></i>
+                            <div style="font-size: 12px; margin-top: 5px;">Здоровье</div>
+                        </div>
+                        <div class="collectible-item" data-type="star" onclick="collectItem('star')">
+                            <i class="fas fa-star" style="font-size: 40px; color: #8B5CF6;"></i>
+                            <div style="font-size: 12px; margin-top: 5px;">Звезда</div>
+                        </div>
+                    </div>
+                    <style>
+                        .collectible-item {
+                            cursor: pointer;
+                            padding: 10px;
+                            border-radius: 10px;
+                            transition: all 0.3s;
+                            text-align: center;
+                        }
+                        .collectible-item:hover {
+                            background: rgba(124, 58, 237, 0.1);
+                            transform: translateY(-5px);
+                        }
+                        .collectible-item.collected {
+                            opacity: 0.3;
+                            transform: scale(0.9);
+                        }
+                    </style>
+                    <p><strong>Эффекты от предметов:</strong></p>
+                    <div class="example-steps">
+                        <li>Монеты: +1 монета</li>
+                        <li>Здоровье: +25 HP (но не больше 100)</li>
+                        <li>Звезда: +10 очков</li>
+                    </div>
+                    <div class="example-interactive">
+                        <p><strong>Статистика игрока:</strong></p>
+                        <div style="display: flex; gap: 15px; margin-top: 10px;">
+                            <div class="indicator indicator-warning">Очки: <span id="scoreValue">0</span></div>
+                            <div class="indicator indicator-danger">HP: <span id="healthValue">25</span></div>
+                            <div class="indicator indicator-success">Монеты: <span id="coinsValue">0</span></div>
+                        </div>
+                        <button class="interactive-btn" onclick="resetStats()" style="margin-top: 15px;">Сбросить статистику</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-gamepad"></i> Игровой дизайн</h4>
+                <p>Балансируйте сложность с помощью предметов: слишком много предметов сделают игру очень простой, слишком мало — сложной.</p>
+            </div>
+
+            <h2>Заключение</h2>
+            <p>Area — невероятно гибкий инструмент в Godot, который открывает огромные возможности для создания интерактивности в играх. Эти скрипты показывают основные механики, которые вам понадобятся в большинстве игр.</p>
+
+            <p>Экспериментируйте, комбинируйте разные скрипты и создавайте уникальные игровые механики! Помните, что многие из этих примеров можно дорабатывать и адаптировать под конкретные нужды вашего проекта.</p>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-rocket"></i> Профессиональный совет</h4>
+                <p>Используйте группы (Groups) для более гибкой логики. Например, вместо проверки <code>if body.name == "Player"</code>, можно использовать <code>if body.is_in_group("players")</code>. Это позволит вашим скриптам работать с любыми объектами в группе "players".</p>
+            </div>
+
+            <!-- Навигация по статьям -->
+            <div class="article-navigation fade-in">
+                <a href="#" class="nav-btn prev">
+                    <i class="fas fa-arrow-left"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Предыдущая статья</div>
+                        <div style="font-weight: 600;">Как работать с Area в Godot: версия для 2D-игр</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-btn next">
+                    <i class="fas fa-arrow-right"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Следующая статья</div>
+                        <div style="font-weight: 600;">Мастер-класс: как создать простой кликер в Godot</div>
+                    </div>
+                </a>
+            </div>
+        </article>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. DOT - мы помогаем создавать игры.<br><br> Блог DOT — это собрание полезных материалов для начинающих разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Для начинающих</a></li>
+                        <li><a href="#">GDScript</a></li>
+                        <li><a href="#">2D разработка</a></li>
+                        <li><a href="#">3D графика</a></li>
+                        <li><a href="#">UI/UX дизайн</a></li>
+                        <li><a href="#">Оптимизация</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        // Мобильное меню
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Закрытие меню при клике на ссылку
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        // Фиксированная шапка при скролле
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    // Закрываем мобильное меню если открыто
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Копирование кода
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codeBlock = this.closest('.code-block');
+                const code = codeBlock.querySelector('code').textContent;
+
+                // Копируем в буфер обмена
+                navigator.clipboard.writeText(code).then(() => {
+                    // Визуальная обратная связь
+                    const originalText = this.textContent;
+                    this.textContent = 'Скопировано!';
+                    this.style.background = '#10B981';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Анимация появления элементов
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Интерактивные примеры кода
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 15px 35px rgba(67, 56, 202, 0.2)';
+            });
+
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        });
+
+        // Инициализация при загрузке
+        window.addEventListener('load', () => {
+            // Анимация появления заголовка
+            document.querySelector('h1').style.opacity = '1';
+            document.querySelector('h1').style.transform = 'translateY(0)';
+            document.querySelector('h1').style.transition = 'opacity 1s ease, transform 1s ease';
+        });
+
+        // Интерактивные функции для примеров
+        function simulateDeathZone() {
+            const result = document.getElementById('result1');
+            const player1 = document.getElementById('player1');
+            const visual = document.getElementById('visual1');
+
+            // Анимация эффекта
+            player1.style.animation = 'shake 0.5s';
+            player1.classList.add('teleport-to-center');
+            visual.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+                visual.style.animation = '';
+            }, 500);
+
+            // Показываем результат
+            result.classList.add('show');
+
+            // Через 3 секунды скрываем
+            setTimeout(() => {
+                result.classList.remove('show');
+                player1.classList.remove('teleport-to-center');
+                player1.style.animation = '';
+            }, 3000);
+        }
+
+        let speedBoostActive = false;
+        let speedValue = 100;
+
+        function applySpeedBoost() {
+            if (speedBoostActive) return;
+
+            speedBoostActive = true;
+            speedValue = 150;
+            document.getElementById('speedValue').textContent = speedValue;
+            document.getElementById('boostIndicator').style.display = 'inline-block';
+
+            // Анимация
+            const visual = document.getElementById('visual2');
+            const player2 = document.getElementById('player2');
+            player2.style.animationDuration = '2s';
+
+            // Через 3 секунды возвращаем обычную скорость
+            setTimeout(() => {
+                speedBoostActive = false;
+                speedValue = 100;
+                document.getElementById('speedValue').textContent = speedValue;
+                document.getElementById('boostIndicator').style.display = 'none';
+                player2.style.animationDuration = '15s';
+            }, 3000);
+        }
+
+        function breakObject() {
+            const cube = document.getElementById('breakableCube');
+            const result = document.getElementById('result3');
+            const player3 = document.getElementById('player3');
+            const state = document.getElementById('objectState');
+
+            // Анимация разрушения
+            player3.classList.add('teleport-to-center');
+            cube.style.transform = 'scale(0)';
+            cube.style.opacity = '0';
+            cube.style.transition = 'all 0.5s';
+
+            state.textContent = 'Разрушен';
+            state.style.color = '#EF4444';
+
+            // Показываем результат
+            result.classList.add('show');
+
+            // Обновляем статистику
+            const coins = parseInt(document.getElementById('coinsValue').textContent) + 3;
+            const score = parseInt(document.getElementById('scoreValue').textContent) + 10;
+            document.getElementById('coinsValue').textContent = coins;
+            document.getElementById('scoreValue').textContent = score;
+
+            // Через 5 секунды восстанавливаем
+            setTimeout(() => {
+                cube.style.transform = 'scale(1)';
+                cube.style.opacity = '1';
+                state.textContent = 'Целый';
+                state.style.color = '';
+                result.classList.remove('show');
+                player3.classList.remove('teleport-to-center');
+            }, 5000);
+        }
+
+        let playerAtPortalA = true;
+
+        function teleportPlayer() {
+            const position = document.getElementById('playerPosition');
+            const result = document.getElementById('result4');
+
+            if (playerAtPortalA) {
+                position.textContent = 'У портала B';
+                playerAtPortalA = false;
+            } else {
+                position.textContent = 'У портала A';
+                playerAtPortalA = true;
+            }
+
+            // Анимация телепортации
+            const player4 = document.querySelector('#player4');
+            player4.style.animation = "teleportPortal 8s"
+
+            result.classList.add('show');
+
+            setTimeout(() => {
+                result.classList.remove('show');
+                player4.style.animation = ""
+            }, 8000);
+        }
+
+        let gravityValue = 980;
+
+        function changeGravity() {
+            const player5 = document.querySelector('#player5');
+            player5.style.animation = "shake 2s"
+            player5.classList.remove("up-down")
+            player5.classList.add("teleport-to-center")
+            player5.classList.add("down-up")
+            gravityValue = 5000;
+            document.getElementById('gravityValue').textContent = gravityValue;
+            document.getElementById('gravityValue').style.color = '#7C3AED';
+        }
+
+        function resetGravity() {
+            const player5 = document.querySelector('#player5');
+            player5.classList.remove("teleport-to-center")
+            player5.classList.remove("down-up")
+            player5.classList.add("up-down")
+            player5.style.animation = "playerMove 10s"
+            gravityValue = 980;
+            document.getElementById('gravityValue').textContent = gravityValue;
+            document.getElementById('gravityValue').style.color = '';
+        }
+
+        let doorOpen = false;
+        let playerInDoorZone = false;
+
+        function playerEnterDoorZone() {
+            playerInDoorZone = true;
+            document.getElementById('playerInZone').textContent = 'Да';
+            document.getElementById('playerInZone').style.color = '#10B981';
+
+            if (!doorOpen) {
+                openDoor();
+            }
+        }
+
+        function playerLeaveDoorZone() {
+            playerInDoorZone = false;
+            document.getElementById('playerInZone').textContent = 'Нет';
+            document.getElementById('playerInZone').style.color = '';
+
+            if (doorOpen) {
+                closeDoor();
+            }
+        }
+
+        function openDoor() {
+            doorOpen = true;
+            const doorVisual = document.getElementById('doorVisual');
+            const doorStatus = document.getElementById('doorStatus');
+            const doorStateText = document.getElementById('doorStateText');
+
+            doorVisual.innerHTML = '<i class="fas fa-door-open"></i>';
+            doorVisual.style.transform = 'translate(-50%, -50%) translateY(-40px)';
+            doorStatus.textContent = 'Открыта';
+            doorStatus.className = 'indicator indicator-success';
+            doorStateText.textContent = 'Открыта';
+        }
+
+        function closeDoor() {
+            doorOpen = false;
+            const doorVisual = document.getElementById('doorVisual');
+            const doorStatus = document.getElementById('doorStatus');
+            const doorStateText = document.getElementById('doorStateText');
+
+            doorVisual.innerHTML = '<i class="fas fa-door-closed"></i>';
+            doorVisual.style.transform = 'translate(-50%, -50%)';
+            doorStatus.textContent = 'Закрыта';
+            doorStatus.className = 'indicator';
+            doorStateText.textContent = 'Закрыта';
+        }
+
+        // Статистика игрока для сбора предметов
+        let score = 0;
+        let health = 25;
+        let coins = 0;
+
+        function collectItem(type) {
+            const item = document.querySelector(`.collectible-item[data-type="${type}"]`);
+
+            // Анимация сбора
+            item.classList.add('collected');
+
+            // Эффекты в зависимости от типа
+            switch(type) {
+                case 'coin':
+                    coins += 1;
+                    break;
+                case 'heart':
+                    health = Math.min(100, health + 25);
+                    break;
+                case 'star':
+                    // Добавить эффект звезды
+                    score += 10;
+                    break;
+            }
+
+            // Обновляем статистику
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('healthValue').textContent = health;
+            document.getElementById('coinsValue').textContent = coins;
+
+            // Через 1 секунду восстанавливаем иконку
+            setTimeout(() => {
+                item.classList.remove('collected');
+            }, 1000);
+        }
+
+        function resetStats() {
+            score = 0;
+            health = 100;
+            coins = 0;
+
+            document.getElementById('scoreValue').textContent = score;
+            document.getElementById('healthValue').textContent = health;
+            document.getElementById('coinsValue').textContent = coins;
+        }
+
+        // Ловушка
+        let trapArmed = true;
+        let playerHealth = 100;
+
+        function activateTrap() {
+            if (!trapArmed) return;
+
+            trapArmed = false;
+            playerHealth = Math.max(0, playerHealth - 25);
+
+            document.getElementById('trapStatus').textContent = 'Перезаряжается';
+            document.getElementById('trapStatus').style.color = '#F59E0B';
+            document.getElementById('playerHealth').textContent = playerHealth;
+
+            // Анимация ловушки
+            const trapEffect = document.getElementById('trapEffect');
+            trapEffect.style.background = 'radial-gradient(circle, rgba(239,68,68,0.3) 0%, rgba(239,68,68,0) 70%)';
+            trapEffect.style.opacity = '1';
+            trapEffect.style.transition = 'opacity 0.5s';
+
+            // Показываем результат
+            const result = document.getElementById('result8');
+            result.classList.add('show');
+
+            // Анимация угасания
+            setTimeout(() => {
+                trapEffect.style.opacity = '0';
+            }, 500);
+
+            // Перезарядка ловушки через 2 секунды
+            setTimeout(() => {
+                trapArmed = true;
+                document.getElementById('trapStatus').textContent = 'Активна';
+                document.getElementById('trapStatus').style.color = '';
+                result.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

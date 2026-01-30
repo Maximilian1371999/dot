@@ -1,0 +1,2430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Преследование врагами в Godot: полное руководство для новичков | Блог DOT</title>
+    <meta name="description" content="Подробное руководство по созданию врагов с ИИ преследования в Godot. Учимся создавать умных врагов, которые ищут и преследуют игрока.">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Фиолетово-синяя палитра DOT */
+            --primary-blue: #4338CA;
+            --secondary-blue: #4F46E5;
+            --accent-purple: #7C3AED;
+            --light-blue: #E0E7FF;
+            --dark-blue: #312E81;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gradient-main: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            --gradient-subtle: linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 100%);
+            --gradient-dark: linear-gradient(135deg, #312E81 0%, #4C1D95 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1), 0 2px 4px -1px rgba(67, 56, 202, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(67, 56, 202, 0.15);
+            --code-bg: #1a1b26;
+            --code-text: #c0caf5;
+            --interactive-bg: #f1f5f9;
+            --interactive-border: #cbd5e1;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--dark-blue);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-blue);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-main);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 15px;
+            color: var(--dark-blue);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 25px 0 10px;
+            color: var(--primary-blue);
+        }
+
+        /* Шапка */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 20px rgba(67, 56, 202, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-purple);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            padding: 120px 0 40px;
+            background: var(--gradient-subtle);
+            margin-bottom: 40px;
+        }
+
+        .breadcrumbs-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .breadcrumbs a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--accent-purple);
+            text-decoration: underline;
+        }
+
+        /* Мета-информация статьи */
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--light-blue);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .meta-item i {
+            color: var(--primary-blue);
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Контент статьи */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 60px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 25px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        /* Блоки кода */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--code-text);
+        }
+
+        .code-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--code-text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-blue);
+        }
+
+        .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* Интерактивные примеры */
+        .interactive-example {
+            background: var(--interactive-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            border: 2px solid var(--interactive-border);
+            position: relative;
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .example-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visual-node {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            position: absolute;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .player-node {
+            background: var(--primary-blue);
+        }
+
+        .enemy-node {
+            background: #DC2626;
+        }
+
+        .path-node {
+            background: #10B981;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--secondary-blue);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tip-box h4 {
+            color: var(--secondary-blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .warning-box h4 {
+            color: #d97706;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lifehack-box {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-left: 4px solid var(--accent-purple);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .lifehack-box h4 {
+            color: var(--accent-purple);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Навигация по статьям */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 60px 0;
+            padding: 30px 0;
+            border-top: 2px solid var(--light-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            width: 48%;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn.prev {
+            text-align: left;
+        }
+
+        .nav-btn.next {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .nav-btn i {
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        /* Автор */
+        .author-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .author-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-5px);
+        }
+
+        .author-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        .author-bio {
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+
+        /* Похожие статьи */
+        .related-articles {
+            margin: 80px 0 40px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .related-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .related-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .related-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-main);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--dark-blue);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--light-blue);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--light-blue);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(67, 56, 202, 0.1);
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .article-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            .author-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .breadcrumbs {
+                padding: 100px 0 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        /* Стили для кода */
+        .gdscript-keyword { color: #ff79c6; }
+        .gdscript-function { color: #50fa7b; }
+        .gdscript-string { color: #f1fa8c; }
+        .gdscript-comment { color: #6272a4; font-style: italic; }
+        .gdscript-number { color: #bd93f9; }
+        .gdscript-builtin { color: #8be9fd; }
+
+        /* Дополнительные стили для интерактивных примеров */
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            background: var(--dark-blue);
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-blue);
+            cursor: pointer;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-blue);
+        }
+
+        .comparison-table th {
+            background: var(--light-blue);
+            color: var(--dark-blue);
+            font-weight: 600;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .pros, .cons {
+            padding: 15px;
+            border-radius: var(--radius);
+        }
+
+        .pros {
+            background: #f0fdf4;
+            border: 2px solid #86efac;
+        }
+
+        .cons {
+            background: #fef2f2;
+            border: 2px solid #fca5a5;
+        }
+
+        .pros h4, .cons h4 {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pros h4 {
+            color: #16a34a;
+        }
+
+        .cons h4 {
+            color: #dc2626;
+        }
+
+        .node-structure {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin: 20px 0;
+            font-family: monospace;
+            line-height: 1.8;
+        }
+
+        .node-structure .node {
+            margin-left: 20px;
+            position: relative;
+        }
+
+        .node-structure .node::before {
+            content: "├── ";
+            position: absolute;
+            left: -20px;
+        }
+
+        .node-structure .node:last-child::before {
+            content: "└── ";
+        }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="blog.html" class="nav-link active">Блог</a>
+                    <a href="index.html#about" class="nav-link">О нас</a>
+                    <a href="index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="index.html#plan" class="nav-link">Программа</a>
+                    <a href="index.html#projects" class="nav-link">Проекты</a>
+                    <a href="index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Главная</a>
+                <a href="blog.html" class="mobile-nav-link">Блог</a>
+                <a href="index.html#about" class="mobile-nav-link">О нас</a>
+                <a href="index.html#lessons" class="mobile-nav-link">Занятия</a>
+                <a href="index.html#plan" class="mobile-nav-link">Программа</a>
+                <a href="index.html#projects" class="mobile-nav-link">Проекты</a>
+                <a href="index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                <a href="index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Хлебные крошки -->
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="index.html">Главная</a>
+                <span>›</span>
+                <a href="blog.html">Блог</a>
+                <span>›</span>
+                <span>Преследование врагами в Godot: полное руководство</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент статьи -->
+    <main class="container">
+        <article class="article-content fade-in">
+            <h1>Преследование врагами в Godot: полное руководство для новичков</h1>
+
+            <div class="article-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar"></i>
+                    <span>28 марта 2026</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-clock"></i>
+                    <span>25 мин чтения</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-user"></i>
+                    <span>Анна Ковалева</span>
+                </div>
+                <div class="article-tag">ИИ врагов</div>
+                <div class="article-tag">Для начинающих</div>
+                <div class="article-tag">2D/3D</div>
+                <div class="article-tag">GDScript</div>
+            </div>
+
+            <p>Привет, будущие геймдизайнеры! Сегодня мы разберем одну из самых важных механик в играх — преследование врагами. Как сделать так, чтобы враги "умно" преследовали игрока, обходили препятствия и создавали интересные игровые ситуации? Давайте разбираться шаг за шагом!</p>
+
+            <blockquote>
+                Умные враги делают игру интересной, а глупые — смешной. Наша задача — найти золотую середину!
+            </blockquote>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-play-circle"></i>
+                    Интерактивный пример: Простое преследование
+                </div>
+                <p>Посмотрите, как враг (красный квадрат) преследует игрока (синий круг). Вы можете управлять игроком мышкой!</p>
+                <div class="example-visual" id="simpleChaseDemo">
+                    <div class="visual-node player-node" id="playerNode">И</div>
+                    <div class="visual-node enemy-node" id="enemyNode">В</div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="resetSimpleChase()">Сбросить позиции</button>
+                    <button class="control-btn" onclick="toggleChase()">Включить/выключить преследование</button>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Скорость врага:</span>
+                        <span id="enemySpeedValue">2.5</span>
+                    </div>
+                    <input type="range" min="0.5" max="5" value="2.5" step="0.1" class="slider" id="enemySpeedSlider" oninput="updateEnemySpeed(this.value)">
+                </div>
+            </div>
+
+            <h2>Часть 1: Базовые принципы преследования</h2>
+            <p>Прежде чем писать код, давайте разберемся, КАК враг должен преследовать игрока. Есть несколько основных подходов:</p>
+
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Метод</th>
+                            <th>Как работает</th>
+                            <th>Когда использовать</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Прямое преследование</strong></td>
+                            <td>Враг движется прямо к игроку</td>
+                            <td>Простые игры, открытые пространства</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Поиск пути (Pathfinding)</strong></td>
+                            <td>Враг находит путь вокруг препятствий</td>
+                            <td>Лабиринты, уровни с препятствиями</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Преследование с предсказанием</strong></td>
+                            <td>Враг стремится в точку, где будет игрок</td>
+                            <td>Стрелялки, игры с быстрыми врагами</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Патрулирование + преследование</strong></td>
+                            <td>Враг патрулирует, а при обнаружении преследует</td>
+                            <td>Стелс-игры, игры с охраной</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4><i class="fas fa-thumbs-up"></i> Прямое преследование: Плюсы</h4>
+                    <ul>
+                        <li>Просто реализовать</li>
+                        <li>Мало вычислений</li>
+                        <li>Хорошо работает в 2D</li>
+                        <li>Идеально для новичков</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4><i class="fas fa-thumbs-down"></i> Прямое преследование: Минусы</h4>
+                    <ul>
+                        <li>Застревает в углах</li>
+                        <li>Не обходит препятствия</li>
+                        <li>Выглядит неестественно</li>
+                        <li>Плохо в лабиринтах</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h2>Часть 2: Создаем врага с прямым преследованием (2D)</h2>
+            <p>Начнем с самого простого варианта — враг, который всегда движется в сторону игрока.</p>
+
+            <div class="node-structure">
+                <div>Enemy (CharacterBody2D)</div>
+                <div class="node">Sprite2D (текстура врага)</div>
+                <div class="node">CollisionShape2D (круглая коллизия)</div>
+                <div class="node">DetectionArea (Area2D для обнаружения игрока)</div>
+                <div class="node">VisionCone (спрайт конуса зрения, опционально)</div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Базовый скрипт прямого преследования (2D)
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody2D
+
+# Настройки врага
+@export var speed = 150.0
+@export var rotation_speed = 5.0  # Скорость поворота
+
+# Цель для преследования (игрок)
+var target: Node2D = null
+# Дистанция для начала преследования
+@export var chase_distance = 300.0
+
+func _ready():
+    # Ищем игрока по имени (убедитесь, что у игрока имя "Player")
+    target = get_node("/root/Game/Player")
+
+func _physics_process(delta):
+    if target == null:
+        return
+
+    # Вычисляем расстояние до цели
+    var distance_to_target = global_position.distance_to(target.global_position)
+
+    # Если цель слишком далеко - не преследуем
+    if distance_to_target > chase_distance:
+        # Можем добавить патрулирование или idle-анимацию
+        velocity = Vector2.ZERO
+        move_and_slide()
+        return
+
+    # Вектор от врага к игроку
+    var direction = (target.global_position - global_position).normalized()
+
+    # Плавный поворот в сторону игрока
+    var target_rotation = direction.angle()
+    rotation = lerp_angle(rotation, target_rotation, rotation_speed * delta)
+
+    # Двигаемся в направлении игрока
+    velocity = direction * speed
+
+    # Применяем движение
+    move_and_slide()
+
+# Функция для установки цели извне
+func set_target(new_target: Node2D):
+    target = new_target</code></pre>
+            </div>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-eye"></i>
+                    Конус зрения врага
+                </div>
+                <p>В реальных играх враги не должны "видеть" сквозь стены. Давайте создадим зону обнаружения с конусом зрения!</p>
+                <div class="example-visual" style="min-height: 150px; flex-direction: column;">
+                    <div style="position: relative; width: 300px; height: 100px; background: #e2e8f0; border-radius: 8px; overflow: hidden;">
+                        <div class="visual-node enemy-node" style="left: 150px; top: 50px; transform: translate(-50%, -50%); z-index: 2;">В</div>
+                        <div id="visionCone" style="position: absolute; left: 150px; top: 50px; width: 0; height: 0; border-left: 100px solid transparent; border-right: 100px solid transparent; border-bottom: 150px solid rgba(220, 38, 38, 0.3); transform-origin: top center; transform: translate(-50%, -50%) rotate(0deg); transition: transform 0.5s;"></div>
+                        <div class="visual-node player-node" id="playerInVision" style="left: 250px; top: 30px; transform: translate(-50%, -50%); z-index: 2; opacity: 0.5;">И</div>
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="movePlayerInVision()">Переместить игрока в конус зрения</button>
+                    <button class="control-btn" onclick="movePlayerOutVision()">Убрать игрока из конуса</button>
+                </div>
+                <div class="slider-container">
+                    <div class="slider-label">
+                        <span>Угол зрения:</span>
+                        <span id="visionAngleValue">60°</span>
+                    </div>
+                    <input type="range" min="30" max="120" value="60" step="5" class="slider" id="visionAngleSlider" oninput="updateVisionAngle(this.value)">
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Скрипт зоны обнаружения с конусом зрения
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends Area2D
+
+# Угол зрения в градусах
+@export var vision_angle = 60.0
+# Дальность зрения
+@export var vision_distance = 200.0
+# Ссылка на врага (родитель)
+@onready var enemy = get_parent()
+
+func _process(delta):
+    # Обновляем визуализацию конуса зрения (если есть)
+    update_vision_cone()
+
+func update_vision_cone():
+    # Этот код обновляет спрайт конуса зрения
+    if has_node("VisionCone"):
+        var cone = $VisionCone
+        # Настраиваем размер конуса в зависимости от дистанции
+        cone.scale = Vector2(vision_distance / 100.0, vision_distance / 100.0)
+        # Можно настроить и другие параметры
+
+# Проверка, виден ли объект в конусе зрения
+func is_in_vision(target_position: Vector2) -> bool:
+    var direction_to_target = (target_position - global_position).normalized()
+    var forward_direction = Vector2.RIGHT.rotated(enemy.rotation)
+
+    # Вычисляем угол между направлением взгляда и целью
+    var angle_to_target = rad_to_deg(forward_direction.angle_to(direction_to_target))
+
+    # Проверяем, находится ли цель в пределах угла зрения
+    if abs(angle_to_target) <= vision_angle / 2:
+        # Проверяем расстояние
+        var distance = global_position.distance_to(target_position)
+        if distance <= vision_distance:
+            # Делаем RayCast, чтобы проверить, нет ли препятствий
+            var space_state = get_world_2d().direct_space_state
+            var query = PhysicsRayQueryParameters2D.create(
+                global_position,
+                target_position
+            )
+            query.exclude = [enemy]  # Исключаем самого врага
+
+            var result = space_state.intersect_ray(query)
+
+            # Если RayCast ничего не нашел (кроме цели) - цель видна!
+            if result.is_empty() or result.collider == get_node("/root/Game/Player"):
+                return true
+
+    return false
+
+# Сигнал при входе тела в Area2D
+func _on_body_entered(body):
+    if body.name == "Player" and is_in_vision(body.global_position):
+        enemy.set_target(body)
+        print("Игрок обнаружен!")</code></pre>
+            </div>
+
+            <div class="lifehack-box">
+                <h4><i class="fas fa-lightbulb"></i> Лайфхак: Оптимизация RayCast</h4>
+                <p>Не делайте RayCast каждый кадр для всех врагов! Вместо этого:<br>
+                1. Используйте таймер для проверки зрения (раз в 0.2-0.5 секунд)<br>
+                2. Сначала проверяйте расстояние — если игрок далеко, не делайте RayCast<br>
+                3. Используйте слои физики, чтобы RayCast проверял только стены</p>
+            </div>
+
+            <h2>Часть 3: Преследование с поиском пути (Pathfinding)</h2>
+            <p>Теперь создадим более умного врага, который сможет обходить стены и препятствия.</p>
+
+            <div class="node-structure">
+                <div>SmartEnemy (CharacterBody2D)</div>
+                <div class="node">Sprite2D</div>
+                <div class="node">CollisionShape2D</div>
+                <div class="node">NavigationAgent2D (самый важный узел!)</div>
+                <div class="node">Timer (для обновления пути)</div>
+            </div>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-route"></i>
+                    Демонстрация поиска пути
+                </div>
+                <p>Нажмите на поле, чтобы установить препятствие. Враг найдет путь вокруг них!</p>
+                <div class="example-visual" id="pathfindingDemo" style="min-height: 300px; cursor: pointer;">
+                    <!-- Здесь будет интерактивная демонстрация -->
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="generateMaze()">Создать лабиринт</button>
+                    <button class="control-btn" onclick="clearObstacles()">Очистить препятствия</button>
+                    <button class="control-btn" onclick="togglePathVisibility()">Показать/скрыть путь</button>
+                </div>
+                <p style="margin-top: 10px; font-size: 14px; color: var(--text-light);">
+                    <i class="fas fa-mouse-pointer"></i> Кликните на поле, чтобы добавить/убрать препятствие
+                </p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Умный враг с NavigationAgent2D
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody2D
+
+@export var speed = 180.0
+@onready var navigation_agent = $NavigationAgent2D
+@onready var path_update_timer = $Timer
+
+var target: Node2D = null
+var current_path: PackedVector2Array = []
+
+func _ready():
+    # Находим игрока
+    target = get_node("/root/Game/Player")
+
+    # Настраиваем NavigationAgent
+    navigation_agent.path_desired_distance = 4.0
+    navigation_agent.target_desired_distance = 4.0
+
+    # Настраиваем таймер обновления пути
+    path_update_timer.wait_time = 0.5  # Обновляем путь 2 раза в секунду
+    path_update_timer.timeout.connect(_update_path)
+    path_update_timer.start()
+
+    # Первое обновление пути
+    _update_path()
+
+func _physics_process(delta):
+    if current_path.size() == 0:
+        return
+
+    # Получаем следующую точку на пути
+    var next_point = current_path[0]
+
+    # Если близко к точке - переходим к следующей
+    if global_position.distance_to(next_point) < 10:
+        current_path.remove_at(0)
+        if current_path.size() == 0:
+            return
+        next_point = current_path[0]
+
+    # Двигаемся к следующей точке
+    var direction = (next_point - global_position).normalized()
+    velocity = direction * speed
+
+    # Плавный поворот
+    var target_rotation = direction.angle()
+    rotation = lerp_angle(rotation, target_rotation, 5.0 * delta)
+
+    move_and_slide()
+
+func _update_path():
+    if target == null:
+        return
+
+    # Запрашиваем новый путь к цели
+    navigation_agent.target_position = target.global_position
+
+    # Получаем путь как массив точек
+    current_path = navigation_agent.get_current_navigation_path()
+
+    # Визуализируем путь (для отладки)
+    _draw_path_debug()
+
+func _draw_path_debug():
+    # Создаем Line2D для отображения пути
+    if not has_node("DebugPath"):
+        var line = Line2D.new()
+        line.name = "DebugPath"
+        line.width = 3.0
+        line.default_color = Color(1, 0.5, 0, 0.5)  # Оранжевый полупрозрачный
+        add_child(line)
+
+    var line = $DebugPath
+    line.points = current_path
+
+    # Автоудаление линии через время
+    get_tree().create_timer(0.5).timeout.connect(func():
+        if is_instance_valid(line):
+            line.queue_free()
+    )
+
+# Важно: на сцене должен быть NavigationRegion2D с правильно настроенным NavigationMesh!</code></pre>
+            </div>
+
+            <div class="warning-box">
+                <h4><i class="fas fa-exclamation-triangle"></i> Важно про NavigationRegion2D</h4>
+                <p>NavigationAgent не будет работать без NavigationRegion2D!<br>
+                1. Добавьте NavigationRegion2D на сцену<br>
+                2. Создайте NavigationMesh (или используйте bake)<br>
+                3. Убедитесь, что NavigationMesh покрывает всю игровую область<br>
+                4. Добавьте статические тела (стены) как препятствия</p>
+            </div>
+
+            <h2>Часть 4: Преследование с предсказанием движения</h2>
+            <p>Этот враг будет стрелять не туда, где игрок сейчас, а туда, где он БУДЕТ!</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Враг с предсказанием движения цели
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody2D
+
+@export var speed = 200.0
+@export var prediction_time = 1.0  # На сколько секунд вперед предсказываем
+
+var target: Node2D = null
+var target_velocity = Vector2.ZERO
+var last_target_position = Vector2.ZERO
+
+func _ready():
+    target = get_node("/root/Game/Player")
+
+func _physics_process(delta):
+    if target == null:
+        return
+
+    # Вычисляем скорость цели (на основе предыдущей позиции)
+    if last_target_position != Vector2.ZERO:
+        target_velocity = (target.global_position - last_target_position) / delta
+
+    last_target_position = target.global_position
+
+    # Предсказываем будущую позицию
+    var predicted_position = target.global_position + (target_velocity * prediction_time)
+
+    # Двигаемся к предсказанной позиции
+    var direction = (predicted_position - global_position).normalized()
+    velocity = direction * speed
+
+    # Плавный поворот к предсказанной позиции
+    var target_rotation = direction.angle()
+    rotation = lerp_angle(rotation, target_rotation, 5.0 * delta)
+
+    move_and_slide()
+
+    # Отладочная отрисовка (опционально)
+    _draw_prediction_debug(predicted_position)
+
+func _draw_prediction_debug(predicted_pos: Vector2):
+    # Рисуем линию к предсказанной позиции
+    var canvas = get_canvas_item()
+    var start_pos = global_position
+    var end_pos = predicted_pos
+
+    # Создаем временный Line2D для отладки
+    if not has_node("PredictionDebug"):
+        var line = Line2D.new()
+        line.name = "PredictionDebug"
+        line.width = 2.0
+        line.default_color = Color(1, 0, 1, 0.7)  # Фиолетовый
+        line.points = [Vector2.ZERO, Vector2.ZERO]
+        add_child(line)
+
+    var line = $PredictionDebug
+    line.points = [Vector2.ZERO, to_local(end_pos)]
+
+    # Точка в предсказанной позиции
+    if not has_node("PredictionPoint"):
+        var point = Sprite2D.new()
+        point.name = "PredictionPoint"
+        point.texture = preload("res://icons/circle.png")
+        point.scale = Vector2(0.3, 0.3)
+        point.modulate = Color(1, 0, 1, 0.5)
+        add_child(point)
+
+    var point = $PredictionPoint
+    point.position = to_local(end_pos)</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> Когда использовать предсказание?</h4>
+                <p>1. <strong>Стреляющие враги</strong> — чтобы стрелять с упреждением<br>
+                2. <strong>Быстрые погони</strong> — чтобы перехватывать игрока<br>
+                3. <strong>Игры с физикой</strong> — мячи, снаряды<br>
+                4. <strong>Спортивные симуляторы</strong> — передача паса вперед</p>
+            </div>
+
+            <h2>Часть 5: Конечный автомат (FSM) для сложного поведения</h2>
+            <p>Профессиональные игры используют конечные автоматы для управления поведением врагов.</p>
+
+            <div class="interactive-example">
+                <div class="example-header">
+                    <i class="fas fa-project-diagram"></i>
+                    Визуализация конечного автомата врага
+                </div>
+                <div class="example-visual" style="min-height: 250px; justify-content: center;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                        <div style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
+                            <div class="state-box" id="stateIdle" style="background: #3b82f6; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;" onclick="changeState('IDLE')">PATROL<br>Патрулирование</div>
+                            <div class="state-box" id="stateChase" style="background: #ef4444; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;" onclick="changeState('CHASE')">CHASE<br>Преследование</div>
+                            <div class="state-box" id="stateAttack" style="background: #dc2626; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;" onclick="changeState('ATTACK')">ATTACK<br>Атака</div>
+                            <div class="state-box" id="stateReturn" style="background: #10b981; color: white; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer;" onclick="changeState('RETURN')">RETURN<br>Возврат</div>
+                        </div>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <div style="font-size: 18px; font-weight: bold; margin-bottom: 10px;">Текущее состояние: <span id="currentState">PATROL</span></div>
+                            <div id="stateDescription" style="color: var(--text-light); max-width: 500px;">
+                                Враг патрулирует заданную территорию. Ищет игрока.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <button class="control-btn" onclick="simulatePlayerSpotted()">Игрок замечен!</button>
+                    <button class="control-btn" onclick="simulatePlayerLost()">Игрок потерян</button>
+                    <button class="control-btn" onclick="simulatePlayerInRange()">Игрок в зоне атаки</button>
+                </div>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Конечный автомат для врага
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends CharacterBody2D
+
+enum State { IDLE, PATROL, CHASE, ATTACK, RETURN }
+
+@export var speed = 150.0
+@export var patrol_speed = 80.0
+@export var chase_speed = 200.0
+
+var current_state = State.PATROL
+var target: Node2D = null
+var patrol_points = []
+var current_patrol_index = 0
+var home_position = Vector2.ZERO
+
+func _ready():
+    target = get_node("/root/Game/Player")
+    home_position = global_position
+
+    # Создаем точки патрулирования вокруг домашней позиции
+    _create_patrol_points()
+
+    # Переходим в начальное состояние
+    enter_state(State.PATROL)
+
+func _physics_process(delta):
+    match current_state:
+        State.IDLE:
+            update_idle(delta)
+        State.PATROL:
+            update_patrol(delta)
+        State.CHASE:
+            update_chase(delta)
+        State.ATTACK:
+            update_attack(delta)
+        State.RETURN:
+            update_return(delta)
+
+    move_and_slide()
+
+# --- IDLE (Ожидание) ---
+func enter_idle():
+    velocity = Vector2.ZERO
+    $AnimationPlayer.play("idle")
+
+func update_idle(delta):
+    # Можем добавить случайные повороты или анимации
+    pass
+
+# --- PATROL (Патрулирование) ---
+func enter_patrol():
+    speed = patrol_speed
+    $AnimationPlayer.play("walk")
+
+func update_patrol(delta):
+    if patrol_points.size() == 0:
+        return
+
+    var target_point = patrol_points[current_patrol_index]
+    var direction = (target_point - global_position).normalized()
+    velocity = direction * speed
+
+    # Поворот в сторону движения
+    if direction.length() > 0:
+        var target_rotation = direction.angle()
+        rotation = lerp_angle(rotation, target_rotation, 3.0 * delta)
+
+    # Достигли точки патрулирования?
+    if global_position.distance_to(target_point) < 10:
+        current_patrol_index = (current_patrol_index + 1) % patrol_points.size()
+
+        # Иногда делаем паузу в точке
+        if randf() < 0.3:  # 30% chance
+            change_state(State.IDLE)
+            await get_tree().create_timer(randf_range(1.0, 3.0)).timeout
+            change_state(State.PATROL)
+
+# --- CHASE (Преследование) ---
+func enter_chase():
+    speed = chase_speed
+    $AnimationPlayer.play("run")
+
+func update_chase(delta):
+    if target == null:
+        change_state(State.RETURN)
+        return
+
+    var direction = (target.global_position - global_position).normalized()
+    velocity = direction * speed
+
+    # Поворот к цели
+    var target_rotation = direction.angle()
+    rotation = lerp_angle(rotation, target_rotation, 5.0 * delta)
+
+    # Проверяем дистанцию для атаки
+    if global_position.distance_to(target.global_position) < 50:
+        change_state(State.ATTACK)
+
+    # Проверяем, не потеряли ли цель
+    if global_position.distance_to(target.global_position) > 400:
+        change_state(State.RETURN)
+
+# --- ATTACK (Атака) ---
+func enter_attack():
+    velocity = Vector2.ZERO
+    $AnimationPlayer.play("attack")
+
+    # Наносим урон (если игрок еще рядом)
+    if target and global_position.distance_to(target.global_position) < 60:
+        if target.has_method("take_damage"):
+            target.take_damage(10)
+
+    # После атаки продолжаем преследование
+    await get_tree().create_timer(0.5).timeout
+    if current_state == State.ATTACK:
+        change_state(State.CHASE)
+
+func update_attack(delta):
+    pass  # Вся логика в enter_attack
+
+# --- RETURN (Возврат) ---
+func enter_return():
+    speed = patrol_speed
+    $AnimationPlayer.play("walk")
+
+func update_return(delta):
+    var direction = (home_position - global_position).normalized()
+    velocity = direction * speed
+
+    # Поворот к дому
+    if direction.length() > 0:
+        var target_rotation = direction.angle()
+        rotation = lerp_angle(rotation, target_rotation, 3.0 * delta)
+
+    # Вернулись домой?
+    if global_position.distance_to(home_position) < 20:
+        change_state(State.PATROL)
+
+# --- Вспомогательные функции ---
+func change_state(new_state: State):
+    # Выход из текущего состояния
+    exit_state(current_state)
+
+    # Вход в новое состояние
+    current_state = new_state
+    enter_state(new_state)
+
+func exit_state(state: State):
+    # Можно добавить логику выхода из состояния
+    pass
+
+func enter_state(state: State):
+    match state:
+        State.IDLE:
+            enter_idle()
+        State.PATROL:
+            enter_patrol()
+        State.CHASE:
+            enter_chase()
+        State.ATTACK:
+            enter_attack()
+        State.RETURN:
+            enter_return()
+
+func _create_patrol_points():
+    # Создаем 4 точки патрулирования вокруг домашней позиции
+    patrol_points = [
+        home_position + Vector2(100, 0),
+        home_position + Vector2(100, 100),
+        home_position + Vector2(0, 100),
+        home_position + Vector2(-100, 0),
+        home_position + Vector2(-100, -100),
+        home_position + Vector2(0, -100)
+    ]
+
+# Сигналы от зоны обнаружения
+func _on_detection_area_body_entered(body):
+    if body.name == "Player" and current_state != State.CHASE and current_state != State.ATTACK:
+        change_state(State.CHASE)
+
+func _on_detection_area_body_exited(body):
+    if body.name == "Player" and current_state == State.CHASE:
+        change_state(State.RETURN)</code></pre>
+            </div>
+
+            <div class="lifehack-box">
+                <h4><i class="fas fa-lightbulb"></i> Продвинутый лайфхак: Behavior Trees</h4>
+                <p>Для еще более сложного поведения используйте Behavior Trees (деревья поведения):<br>
+                1. Создайте скрипт с узлами поведения<br>
+                2. Каждый узел возвращает SUCCESS, FAILURE или RUNNING<br>
+                3. Комбинируйте узлы в дерево<br>
+                4. Пример: Sequence([ВидитИгрока?, ДостатчноБлизко?, Атаковать])</p>
+            </div>
+
+            <h2>Часть 6: Оптимизация для множества врагов</h2>
+            <p>Что делать, если у вас 100 врагов на сцене? Вот секреты оптимизации:</p>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <div class="code-title">
+                        <i class="fas fa-code"></i>
+                        Оптимизированный менеджер врагов
+                    </div>
+                    <button class="copy-btn">Копировать</button>
+                </div>
+                <pre><code class="language-gdscript">extends Node
+
+# Группируем врагов для оптимизации
+var active_enemies = []
+var inactive_enemies = []
+var update_interval = 0.1  # Обновляем 10 раз в секунду вместо 60
+var time_since_update = 0.0
+
+func _ready():
+    # Находим всех врагов на сцене
+    var enemies = get_tree().get_nodes_in_group("enemies")
+    for enemy in enemies:
+        inactive_enemies.append(enemy)
+        enemy.set_physics_process(false)  # Отключаем физику у неактивных
+
+func _process(delta):
+    time_since_update += delta
+
+    if time_since_update >= update_interval:
+        time_since_update = 0.0
+        _update_enemies()
+
+func _update_enemies():
+    var player = get_node("/root/Game/Player")
+    if not player:
+        return
+
+    # Оптимизация 1: Обновляем только врагов рядом с игроком
+    for enemy in active_enemies:
+        if is_instance_valid(enemy):
+            var distance = enemy.global_position.distance_to(player.global_position)
+
+            # Если враг слишком далеко - деактивируем
+            if distance > 500:
+                _deactivate_enemy(enemy)
+            else:
+                enemy._optimized_update(update_interval)
+
+    # Активируем врагов, которые стали близко
+    for i in range(inactive_enemies.size() - 1, -1, -1):
+        var enemy = inactive_enemies[i]
+        if is_instance_valid(enemy):
+            var distance = enemy.global_position.distance_to(player.global_position)
+            if distance <= 500:
+                _activate_enemy(enemy)
+                inactive_enemies.remove_at(i)
+
+func _activate_enemy(enemy):
+    enemy.set_physics_process(true)
+    enemy.visible = true
+    enemy.get_node("CollisionShape2D").disabled = false
+    active_enemies.append(enemy)
+
+func _deactivate_enemy(enemy):
+    enemy.set_physics_process(false)
+    enemy.visible = false
+    enemy.get_node("CollisionShape2D").disabled = true
+    active_enemies.erase(enemy)
+    inactive_enemies.append(enemy)
+
+# В скрипте врага добавляем:
+# func _optimized_update(delta):
+#     # Упрощенная версия _physics_process
+#     # Без сложных вычислений, только необходимое</code></pre>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-lightbulb"></i> 5 правил оптимизации ИИ</h4>
+                <p>1. <strong>Обновляйте реже</strong> — не каждый кадр, а раз в 0.1-0.3 секунды<br>
+                2. <strong>Используйте расстояния</strong> — не проверяйте далеких врагов<br>
+                3. <strong>Группируйте вычисления</strong> — один RayCast для группы врагов<br>
+                4. <strong>Отключайте невидимых</strong> — враги за камерой не нуждаются в ИИ<br>
+                5. <strong>Используйте простую математику</strong> — избегайте квадратных корней, используйте squared_distance</p>
+            </div>
+
+            <h2>Заключение и дальнейшие шаги</h2>
+            <p>Поздравляю! Теперь вы знаете все основные техники создания врагов с ИИ преследования. Давайте подведем итоги:</p>
+
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Техника</th>
+                            <th>Сложность</th>
+                            <th>Производительность</th>
+                            <th>Рекомендуется для</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Прямое преследование</td>
+                            <td>★☆☆☆☆ (очень просто)</td>
+                            <td>★★★★★ (отлично)</td>
+                            <td>Первые проекты, аркадные игры</td>
+                        </tr>
+                        <tr>
+                            <td>Поиск пути</td>
+                            <td>★★★☆☆ (средне)</td>
+                            <td>★★★☆☆ (нормально)</td>
+                            <td>Лабиринты, тактические игры</td>
+                        </tr>
+                        <tr>
+                            <td>Предсказание</td>
+                            <td>★★☆☆☆ (просто)</td>
+                            <td>★★★★☆ (хорошо)</td>
+                            <td>Стрелялки, спортивные игры</td>
+                        </tr>
+                        <tr>
+                            <td>Конечный автомат</td>
+                            <td>★★★★☆ (сложно)</td>
+                            <td>★★★☆☆ (нормально)</td>
+                            <td>RPG, стелс-игры, сложные враги</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="tip-box">
+                <h4><i class="fas fa-rocket"></i> Что делать дальше?</h4>
+                <p>1. <strong>Экспериментируйте</strong> — смешивайте разные техники<br>
+                2. <strong>Добавляйте персонажей</strong> — разные враги с разным ИИ<br>
+                3. <strong>Улучшайте визуал</strong> — анимации, частицы, звуки<br>
+                4. <strong>Тестируйте баланс</strong> — враги должны быть вызовом, но не невозможными<br>
+                5. <strong>Делитесь</strong> — покажите свою игру друзьям и получите обратную связь!</p>
+            </div>
+
+            <!-- Автор -->
+            <div class="author-card fade-in">
+                <div class="author-avatar">
+                    АК
+                </div>
+                <div class="author-info">
+                    <h4>Об авторе</h4>
+                    <p><strong>Анна Ковалева</strong> — технический геймдизайнер школы DOT, специализируется на игровом ИИ и балансе. Автор курса "Искусственный интеллект в играх: от простого к сложному".</p>
+                    <p class="author-bio">Считает, что хороший ИИ должен быть незаметным — игрок должен думать о вызове, а не о коде.</p>
+                </div>
+            </div>
+
+            <!-- Навигация по статьям -->
+            <div class="article-navigation fade-in">
+                <a href="#" class="nav-btn prev">
+                    <i class="fas fa-arrow-left"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Предыдущая статья</div>
+                        <div style="font-weight: 600;">Простейший FPS шутер в Godot: создаем за 30 минут</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-btn next">
+                    <i class="fas fa-arrow-right"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Следующая статья</div>
+                        <div style="font-weight: 600;">Создание диалоговой системы для RPG игр</div>
+                    </div>
+                </a>
+            </div>
+        </article>
+
+        <!-- Похожие статьи -->
+        <section class="related-articles fade-in">
+            <h2>Похожие статьи</h2>
+            <div class="related-grid">
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1552820728-8b83bb6b773f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">ИИ</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Поведенческие деревья в Godot</h3>
+                        <p>Создаем сложное поведение врагов с помощью деревьев решений</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">2D</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Создание платформера с умными врагами</h3>
+                        <p>Враги, которые прыгают, летают и преследуют игрока</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Оптимизация</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Оптимизация игр для мобильных устройств</h3>
+                        <p>Как сделать игру быстрой даже на слабых устройствах</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. Мы помогаем создавать игры с 2023 года. Блог DOT — это собрание полезных материалов для начинающих и продвинутых разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">ИИ врагов</a></li>
+                        <li><a href="#">2D разработка</a></li>
+                        <li><a href="#">3D графика</a></li>
+                        <li><a href="#">Оптимизация</a></li>
+                        <li><a href="#">Геймдизайн</a></li>
+                        <li><a href="#">Для начинающих</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        // Интерактивные демонстрации для статьи
+
+        // Демонстрация 1: Простое преследование
+        let chaseActive = true;
+        let enemySpeed = 2.5;
+        let playerPos = {x: 250, y: 150};
+        let enemyPos = {x: 50, y: 50};
+
+        function updateSimpleChase() {
+            if (!chaseActive) return;
+
+            const playerNode = document.getElementById('playerNode');
+            const enemyNode = document.getElementById('enemyNode');
+            const demoArea = document.getElementById('simpleChaseDemo');
+
+            // Получаем размеры области
+            const areaRect = demoArea.getBoundingClientRect();
+            const areaWidth = areaRect.width;
+            const areaHeight = areaRect.height;
+
+            // Вычисляем направление к игроку
+            const dx = playerPos.x - enemyPos.x;
+            const dy = playerPos.y - enemyPos.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance > 5) {
+                // Двигаем врага к игроку
+                enemyPos.x += (dx / distance) * enemySpeed;
+                enemyPos.y += (dy / distance) * enemySpeed;
+            }
+
+            // Обновляем позиции
+            playerNode.style.left = playerPos.x + 'px';
+            playerNode.style.top = playerPos.y + 'px';
+            enemyNode.style.left = enemyPos.x + 'px';
+            enemyNode.style.top = enemyPos.y + 'px';
+
+            // Поворачиваем врага в сторону игрока
+            const angle = Math.atan2(dy, dx);
+            enemyNode.style.transform = `translate(-50%, -50%) rotate(${angle}rad)`;
+
+            requestAnimationFrame(updateSimpleChase);
+        }
+
+        // Обработка движения мыши в демо-области
+        document.getElementById('simpleChaseDemo').addEventListener('mousemove', function(e) {
+            const rect = this.getBoundingClientRect();
+            playerPos.x = e.clientX - rect.left;
+            playerPos.y = e.clientY - rect.top;
+
+            // Ограничиваем позицию в пределах области
+            playerPos.x = Math.max(20, Math.min(rect.width - 20, playerPos.x));
+            playerPos.y = Math.max(20, Math.min(rect.height - 20, playerPos.y));
+        });
+
+        function resetSimpleChase() {
+            const demoArea = document.getElementById('simpleChaseDemo');
+            const rect = demoArea.getBoundingClientRect();
+
+            playerPos = {
+                x: rect.width * 0.7,
+                y: rect.height * 0.7
+            };
+
+            enemyPos = {
+                x: rect.width * 0.3,
+                y: rect.height * 0.3
+            };
+        }
+
+        function toggleChase() {
+            chaseActive = !chaseActive;
+            if (chaseActive) {
+                updateSimpleChase();
+            }
+        }
+
+        function updateEnemySpeed(value) {
+            enemySpeed = parseFloat(value);
+            document.getElementById('enemySpeedValue').textContent = value;
+        }
+
+        // Демонстрация 2: Конус зрения
+        let visionAngle = 60;
+        let playerInVision = false;
+
+        function updateVisionAngle(value) {
+            visionAngle = parseInt(value);
+            document.getElementById('visionAngleValue').textContent = value + '°';
+
+            const cone = document.getElementById('visionCone');
+            const angleRad = visionAngle * Math.PI / 180;
+
+            // Обновляем ширину конуса
+            const coneWidth = Math.tan(angleRad / 2) * 150 * 2;
+            cone.style.borderLeftWidth = coneWidth / 2 + 'px';
+            cone.style.borderRightWidth = coneWidth / 2 + 'px';
+        }
+
+        function movePlayerInVision() {
+            const player = document.getElementById('playerInVision');
+            player.style.left = '250px';
+            player.style.top = '30px';
+            player.style.opacity = '1';
+            playerInVision = true;
+        }
+
+        function movePlayerOutVision() {
+            const player = document.getElementById('playerInVision');
+            player.style.left = '50px';
+            player.style.top = '80px';
+            player.style.opacity = '0.5';
+            playerInVision = false;
+        }
+
+        // Демонстрация 3: Конечный автомат
+        let currentState = 'IDLE';
+        const stateDescriptions = {
+            'IDLE': 'Враг стоит на месте. Отдыхает или наблюдает.',
+            'PATROL': 'Враг патрулирует заданную территорию. Ищет игрока.',
+            'CHASE': 'Враг преследует игрока! Двигается с максимальной скоростью.',
+            'ATTACK': 'Враг атакует игрока в ближнем бою или стреляет.',
+            'RETURN': 'Враг возвращается на свою позицию после потери игрока.'
+        };
+
+        function changeState(newState) {
+            // Сбрасываем все состояния
+            document.querySelectorAll('.state-box').forEach(box => {
+                box.style.transform = 'scale(1)';
+                box.style.boxShadow = 'none';
+            });
+
+            // Выделяем новое состояние
+            const stateBox = document.getElementById('state' + newState.charAt(0).toUpperCase() + newState.slice(1).toLowerCase());
+            if (stateBox) {
+                stateBox.style.transform = 'scale(1.1)';
+                stateBox.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
+            }
+
+            currentState = newState;
+            document.getElementById('currentState').textContent = newState;
+            document.getElementById('stateDescription').textContent = stateDescriptions[newState] || '';
+        }
+
+        function simulatePlayerSpotted() {
+            changeState('CHASE');
+        }
+
+        function simulatePlayerLost() {
+            changeState('RETURN');
+        }
+
+        function simulatePlayerInRange() {
+            changeState('ATTACK');
+        }
+
+        // Инициализация всех демонстраций
+        document.addEventListener('DOMContentLoaded', function() {
+            // Запускаем демонстрацию преследования
+            updateSimpleChase();
+
+            // Инициализируем конус зрения
+            updateVisionAngle(60);
+
+            // Инициализируем конечный автомат
+            changeState('PATROL');
+
+            // Демонстрация поиска пути
+            initPathfindingDemo();
+        });
+
+        // Демонстрация 4: Поиск пути (упрощенная версия)
+        function initPathfindingDemo() {
+            const demo = document.getElementById('pathfindingDemo');
+
+            // Создаем сетку для демонстрации
+            demo.innerHTML = '';
+            demo.style.position = 'relative';
+            demo.style.background = 'linear-gradient(45deg, #f8fafc 25%, #f1f5f9 25%, #f1f5f9 50%, #f8fafc 50%, #f8fafc 75%, #f1f5f9 75%, #f1f5f9)';
+            demo.style.backgroundSize = '40px 40px';
+
+            // Создаем врага и игрока
+            const enemy = document.createElement('div');
+            enemy.className = 'visual-node enemy-node';
+            enemy.textContent = 'В';
+            enemy.style.left = '50px';
+            enemy.style.top = '150px';
+            demo.appendChild(enemy);
+
+            const player = document.createElement('div');
+            player.className = 'visual-node player-node';
+            player.textContent = 'И';
+            player.style.left = '450px';
+            player.style.top = '150px';
+            demo.appendChild(player);
+
+            // Массив препятствий
+            let obstacles = [];
+
+            // Обработчик кликов для создания препятствий
+            demo.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                // Проверяем, не кликнули ли на существующее препятствие
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obs = obstacles[i];
+                    const obsRect = obs.getBoundingClientRect();
+                    const relativeRect = {
+                        left: obsRect.left - rect.left,
+                        top: obsRect.top - rect.top,
+                        right: obsRect.right - rect.left,
+                        bottom: obsRect.bottom - rect.top
+                    };
+
+                    if (x >= relativeRect.left && x <= relativeRect.right &&
+                        y >= relativeRect.top && y <= relativeRect.bottom) {
+                        // Удаляем препятствие
+                        obs.remove();
+                        obstacles.splice(i, 1);
+                        return;
+                    }
+                }
+
+                // Создаем новое препятствие
+                const obstacle = document.createElement('div');
+                obstacle.style.position = 'absolute';
+                obstacle.style.left = (x - 20) + 'px';
+                obstacle.style.top = (y - 20) + 'px';
+                obstacle.style.width = '40px';
+                obstacle.style.height = '40px';
+                obstacle.style.backgroundColor = '#475569';
+                obstacle.style.borderRadius = '4px';
+                obstacle.style.cursor = 'pointer';
+                obstacle.title = 'Кликните, чтобы удалить';
+
+                demo.appendChild(obstacle);
+                obstacles.push(obstacle);
+            });
+        }
+
+        function generateMaze() {
+            const demo = document.getElementById('pathfindingDemo');
+            clearObstacles();
+
+            // Простой лабиринт
+            const obstacles = [
+                {x: 100, y: 100, w: 200, h: 20},
+                {x: 100, y: 100, w: 20, h: 200},
+                {x: 280, y: 100, w: 20, h: 200},
+                {x: 100, y: 280, w: 200, h: 20},
+                {x: 200, y: 150, w: 20, h: 100},
+                {x: 350, y: 50, w: 20, h: 250},
+                {x: 250, y: 200, w: 150, h: 20}
+            ];
+
+            obstacles.forEach(obs => {
+                const obstacle = document.createElement('div');
+                obstacle.style.position = 'absolute';
+                obstacle.style.left = obs.x + 'px';
+                obstacle.style.top = obs.y + 'px';
+                obstacle.style.width = obs.w + 'px';
+                obstacle.style.height = obs.h + 'px';
+                obstacle.style.backgroundColor = '#475569';
+                obstacle.style.borderRadius = '4px';
+                obstacle.style.cursor = 'pointer';
+                obstacle.title = 'Кликните, чтобы удалить';
+
+                demo.appendChild(obstacle);
+                // Сохраняем в массив, если бы он был доступен
+            });
+        }
+
+        function clearObstacles() {
+            const demo = document.getElementById('pathfindingDemo');
+            const obstacles = demo.querySelectorAll('div[style*="background-color: #475569"]');
+            obstacles.forEach(obs => obs.remove());
+        }
+
+        function togglePathVisibility() {
+            // Здесь можно добавить отображение пути
+            alert('В реальной игре здесь отобразился бы путь врага!');
+        }
+
+        // Стандартный код для страницы (меню, копирование и т.д.)
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codeBlock = this.closest('.code-block');
+                const code = codeBlock.querySelector('code').textContent;
+
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalText = this.textContent;
+                    this.textContent = 'Скопировано!';
+                    this.style.background = '#10B981';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        window.addEventListener('load', () => {
+            document.querySelector('h1').style.opacity = '1';
+            document.querySelector('h1').style.transform = 'translateY(0)';
+            document.querySelector('h1').style.transition = 'opacity 1s ease, transform 1s ease';
+        });
+
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 15px 35px rgba(67, 56, 202, 0.2)';
+            });
+
+            block.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+</body>
+</html>

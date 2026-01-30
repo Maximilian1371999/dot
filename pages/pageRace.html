@@ -1,0 +1,2745 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мастер-класс: как создать простую гоночную игру в Godot | Блог DOT</title>
+    <meta name="description" content="Пошаговый мастер-класс по созданию 2D гоночной игры в Godot с нуля. Физика автомобиля, управление, создание трассы и система заездов для начинающих.">
+
+    <!-- Шрифты -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&family=Pacifico&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* Сброс стилей */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Цвета для гоночной темы */
+            --racing-red: #DC2626;
+            --racing-blue: #2563EB;
+            --racing-green: #10B981;
+            --racing-yellow: #F59E0B;
+            --racing-black: #1F2937;
+            --racing-gray: #6B7280;
+            --track-color: #374151;
+            --grass-color: #16A34A;
+            --primary-blue: #4338CA;
+            --secondary-blue: #4F46E5;
+            --accent-purple: #7C3AED;
+            --light-blue: #E0E7FF;
+            --dark-blue: #312E81;
+            --light-bg: #F8FAFC;
+            --text-dark: #1E293B;
+            --text-light: #64748B;
+            --white: #FFFFFF;
+            --gradient-main: linear-gradient(135deg, #4338CA 0%, #7C3AED 100%);
+            --gradient-subtle: linear-gradient(135deg, #E0E7FF 0%, #F5F3FF 100%);
+            --gradient-dark: linear-gradient(135deg, #312E81 0%, #4C1D95 100%);
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(67, 56, 202, 0.1), 0 2px 4px -1px rgba(67, 56, 202, 0.06);
+            --shadow-lg: 0 10px 25px -5px rgba(67, 56, 202, 0.15);
+            --code-bg: #1a1b26;
+            --code-text: #c0caf5;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        body {
+            font-family: 'Raleway', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .logo-font {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .accent-font {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--gradient-main);
+            color: white;
+            padding: 14px 32px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            font-family: 'Raleway', sans-serif;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--dark-blue);
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            color: var(--dark-blue);
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-main);
+            border-radius: 2px;
+        }
+
+        h3 {
+            font-size: 1.6rem;
+            margin: 30px 0 15px;
+            color: var(--dark-blue);
+        }
+
+        h4 {
+            font-size: 1.3rem;
+            margin: 25px 0 10px;
+            color: var(--primary-blue);
+        }
+
+        /* Шапка */
+        header {
+            background-color: var(--white);
+            box-shadow: 0 2px 20px rgba(67, 56, 202, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .header-scrolled {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-dot {
+            color: var(--accent-purple);
+            font-family: 'Pacifico', cursive;
+            font-size: 2.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 35px;
+        }
+
+        .nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-blue);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-main);
+            transition: width 0.3s;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--primary-blue);
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            padding: 120px 0 40px;
+            background: var(--gradient-subtle);
+            margin-bottom: 40px;
+        }
+
+        .breadcrumbs-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .breadcrumbs a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--accent-purple);
+            text-decoration: underline;
+        }
+
+        /* Мета-информация статьи */
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid var(--light-blue);
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        .meta-item i {
+            color: var(--primary-blue);
+        }
+
+        .article-tag {
+            display: inline-block;
+            background: var(--light-blue);
+            color: var(--primary-blue);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Контент статьи */
+        .article-content {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 60px;
+        }
+
+        .article-content p {
+            margin-bottom: 20px;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+
+        .article-content li {
+            margin-bottom: 10px;
+        }
+
+        .article-content blockquote {
+            border-left: 4px solid var(--primary-blue);
+            padding-left: 25px;
+            margin: 30px 0;
+            font-style: italic;
+            color: var(--text-light);
+            font-size: 1.2rem;
+        }
+
+        /* Блоки кода */
+        .code-block {
+            background: var(--code-bg);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            border-left: 4px solid var(--accent-purple);
+        }
+
+        .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--code-text);
+        }
+
+        .code-title {
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--code-text);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary-blue);
+        }
+
+        .code-block pre {
+            margin: 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* Контейнер для урока */
+        .lesson-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 40px 0;
+            align-items: start;
+        }
+
+        @media (max-width: 992px) {
+            .lesson-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .lesson-explanation {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            border: 2px solid var(--light-blue);
+            box-shadow: var(--shadow);
+            height: 100%;
+        }
+
+        .lesson-demo {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            border: 2px solid var(--light-blue);
+            box-shadow: var(--shadow);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .demo-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: var(--primary-blue);
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
+        /* Демо-гонка */
+        .race-demo {
+            background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            border: 4px solid var(--racing-red);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+        }
+
+        .race-track {
+            width: 100%;
+            height: 250px;
+            background: var(--track-color);
+            border-radius: 10px;
+            position: relative;
+            margin: 0 auto;
+            overflow: hidden;
+            border: 8px solid var(--grass-color);
+        }
+
+        .road-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 20px,
+                var(--racing-yellow) 20px,
+                var(--racing-yellow) 40px
+            );
+            opacity: 0.8;
+        }
+
+        .demo-car {
+            position: absolute;
+            width: 40px;
+            height: 20px;
+            background: var(--racing-red);
+            border-radius: 5px;
+            top: 115px;
+            left: 50px;
+            transition: all 0.1s;
+            transform-origin: center;
+        }
+
+        .demo-car::before {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--racing-blue);
+            border-radius: 50%;
+            top: -5px;
+            left: 15px;
+        }
+
+        .demo-car::after {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 8px;
+            background: #1F2937;
+            bottom: 0;
+            left: 5px;
+            border-radius: 3px;
+        }
+
+        .speedometer {
+            background: linear-gradient(135deg, #111827 0%, #1F2937 100%);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            border: 2px solid var(--racing-red);
+            color: white;
+        }
+
+        .speed-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--racing-green);
+            font-family: 'Montserrat', sans-serif;
+            margin: 10px 0;
+        }
+
+        .speed-unit {
+            font-size: 1rem;
+            color: var(--racing-gray);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            background: var(--racing-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn:hover {
+            background: var(--primary-blue);
+            transform: translateY(-2px);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Дерево узлов */
+        .node-tree {
+            background: #1E293B;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+
+        .node-item {
+            margin: 10px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .node-item::before {
+            content: '├─';
+            position: absolute;
+            left: 0;
+            color: #94A3B8;
+        }
+
+        .node-item:last-child::before {
+            content: '└─';
+        }
+
+        .node-icon {
+            color: var(--racing-red);
+            margin-right: 10px;
+        }
+
+        .node-type {
+            color: #60A5FA;
+            font-weight: bold;
+        }
+
+        /* Интерактивные элементы */
+        .interactive-example {
+            background: linear-gradient(135deg, #E0E7FF 0%, #EDE9FE 100%);
+            border-radius: var(--radius);
+            padding: 25px;
+            margin: 30px 0;
+            border-left: 4px solid var(--secondary-blue);
+        }
+
+        .example-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            color: var(--secondary-blue);
+            font-weight: 600;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-left: 4px solid var(--secondary-blue);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .tip-box h4 {
+            color: var(--secondary-blue);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .warning-box {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            border-left: 4px solid var(--warning);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 var(--radius) var(--radius) 0;
+        }
+
+        .warning-box h4 {
+            color: var(--warning);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Индикаторы */
+        .indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .indicator-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .indicator-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .indicator-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .indicator-info {
+            background: rgba(67, 56, 202, 0.1);
+            color: var(--primary-blue);
+            border: 1px solid rgba(67, 56, 202, 0.3);
+        }
+
+        .indicator-racing {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--racing-red);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+        }
+
+        /* Шаги создания */
+        .creation-steps {
+            counter-reset: step-counter;
+            margin: 40px 0;
+        }
+
+        .creation-step {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 2px solid var(--light-blue);
+            position: relative;
+            padding-left: 70px;
+            transition: all 0.3s;
+        }
+
+        .creation-step:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .creation-step::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 25px;
+            top: 25px;
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-main);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        /* Демо физики */
+        .physics-demo {
+            background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 30px 0;
+            color: white;
+        }
+
+        .physics-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .physics-slider {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .slider-value {
+            color: var(--racing-green);
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--track-color);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--racing-red);
+            cursor: pointer;
+        }
+
+        /* Навигация по статьям */
+        .article-navigation {
+            display: flex;
+            justify-content: space-between;
+            margin: 60px 0;
+            padding: 30px 0;
+            border-top: 2px solid var(--light-blue);
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: var(--radius);
+            text-decoration: none;
+            color: var(--text-dark);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+            width: 48%;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-btn.prev {
+            text-align: left;
+        }
+
+        .nav-btn.next {
+            text-align: right;
+            flex-direction: row-reverse;
+        }
+
+        .nav-btn i {
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        /* Автор */
+        .author-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            margin: 40px 0;
+            display: flex;
+            align-items: center;
+            gap: 25px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .author-card:hover {
+            border-color: var(--primary-blue);
+            transform: translateY(-5px);
+        }
+
+        .author-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--gradient-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .author-info h4 {
+            margin-top: 0;
+            color: var(--dark-blue);
+        }
+
+        .author-bio {
+            color: var(--text-light);
+            margin-top: 10px;
+        }
+
+        /* Похожие статьи */
+        .related-articles {
+            margin: 80px 0 40px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .related-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .related-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-blue);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .related-image {
+            height: 180px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .related-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-main);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .related-content {
+            padding: 20px;
+        }
+
+        .related-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--dark-blue);
+        }
+
+        /* Футер */
+        footer {
+            background: var(--gradient-dark);
+            color: white;
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-logo {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-dot {
+            color: var(--light-blue);
+            font-family: 'Pacifico', cursive;
+        }
+
+        .footer-about {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        .footer-links h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+            color: white;
+        }
+
+        .footer-links h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--light-blue);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-purple);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Мобильное меню */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            background: var(--white);
+            box-shadow: 0 10px 30px rgba(67, 56, 202, 0.1);
+            z-index: 999;
+            padding: 20px;
+        }
+
+        .mobile-menu.active {
+            display: block;
+        }
+
+        .mobile-nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-nav-link {
+            color: var(--text-dark);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F1F5F9;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 992px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .article-navigation {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .nav-btn {
+                width: 100%;
+            }
+
+            .author-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .breadcrumbs {
+                padding: 100px 0 30px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .article-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .related-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-links h3::after {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            .creation-step {
+                padding: 20px 20px 20px 60px;
+            }
+
+            .controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+
+        @keyframes tireSkid {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(10px); }
+        }
+
+        .skid-effect {
+            position: absolute;
+            width: 20px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 2px;
+            animation: tireSkid 0.2s infinite alternate;
+        }
+
+        @keyframes nitroBoost {
+            0% { transform: scale(1); filter: brightness(1); }
+            50% { transform: scale(1.05); filter: brightness(1.5); }
+            100% { transform: scale(1); filter: brightness(1); }
+        }
+
+        .nitro-active {
+            animation: nitroBoost 0.3s infinite;
+        }
+
+        /* Стили для кода */
+        .gdscript-keyword { color: #ff79c6; }
+        .gdscript-function { color: #50fa7b; }
+        .gdscript-string { color: #f1fa8c; }
+        .gdscript-comment { color: #6272a4; font-style: italic; }
+        .gdscript-number { color: #bd93f9; }
+        .gdscript-builtin { color: #8be9fd; }
+    </style>
+</head>
+<body>
+    <!-- Шапка -->
+    <header id="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <span class="logo-font">DOT</span>
+                    <span class="logo-dot">.</span>
+                </a>
+                <div class="nav-links">
+                    <a href="index.html" class="nav-link">Главная</a>
+                    <a href="blog.html" class="nav-link active">Блог</a>
+                    <a href="index.html#about" class="nav-link">О нас</a>
+                    <a href="index.html#lessons" class="nav-link">Занятия</a>
+                    <a href="index.html#plan" class="nav-link">Программа</a>
+                    <a href="index.html#projects" class="nav-link">Проекты</a>
+                    <a href="index.html#teachers" class="nav-link">Преподаватели</a>
+                    <a href="index.html#form" class="nav-link">Запись</a>
+                </div>
+                <button class="hamburger" id="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <a href="index.html#form" class="btn">Начать обучение</a>
+            </div>
+        </div>
+
+        <!-- Мобильное меню -->
+        <div class="mobile-menu" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="index.html" class="mobile-nav-link">Главная</a>
+                <a href="blog.html" class="mobile-nav-link">Блог</a>
+                <a href="index.html#about" class="mobile-nav-link">О нас</a>
+                <a href="index.html#lessons" class="mobile-nav-link">Занятия</a>
+                <a href="index.html#plan" class="mobile-nav-link">Программа</a>
+                <a href="index.html#projects" class="mobile-nav-link">Проекты</a>
+                <a href="index.html#teachers" class="mobile-nav-link">Преподаватели</a>
+                <a href="index.html#form" class="mobile-nav-link">Запись</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Хлебные крошки -->
+    <section class="breadcrumbs">
+        <div class="container">
+            <div class="breadcrumbs-content">
+                <a href="index.html">Главная</a>
+                <span>›</span>
+                <a href="blog.html">Блог</a>
+                <span>›</span>
+                <span>Мастер-класс: создание гоночной игры в Godot</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Основной контент статьи -->
+    <main class="container">
+        <article class="article-content fade-in">
+            <h1>Мастер-класс: создание простой гоночной игры в Godot с нуля</h1>
+
+            <div class="article-meta">
+                <div class="meta-item">
+                    <i class="far fa-calendar"></i>
+                    <span>22 января 2026</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-clock"></i>
+                    <span>30 мин чтения</span>
+                </div>
+                <div class="meta-item">
+                    <i class="far fa-user"></i>
+                    <span>Александр Петров</span>
+                </div>
+                <div class="article-tag">Мастер-класс</div>
+                <div class="article-tag">Физика</div>
+                <div class="article-tag">2D графика</div>
+                <div class="article-tag">GDScript</div>
+            </div>
+
+            <!-- Введение -->
+            <div class="lesson-container">
+                <div class="lesson-explanation">
+                    <h3><i class="fas fa-flag-checkered"></i> Что мы будем создавать?</h3>
+                    <p>В этом мастер-классе мы создадим полноценную 2D гоночную игру в Godot с нуля. Вы научитесь:</p>
+                    <ul>
+                        <li>Создавать реалистичную физику автомобиля</li>
+                        <li>Реализовывать управление с клавиатуры и геймпада</li>
+                        <li>Строить трассы с помощью TileMap</li>
+                        <li>Добавлять камеру, следующую за машиной</li>
+                        <li>Создавать систему заездов и таймер</li>
+                        <li>Добавлять визуальные эффекты (следы от шин, частицы)</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <h4><i class="fas fa-lightbulb"></i> Почему гоночная игра?</h4>
+                        <p>Гоночные игры отлично подходят для изучения физики, управления и создания уровней в Godot. Вы освоите ключевые концепции игровой разработки на практическом примере.</p>
+                    </div>
+                </div>
+
+                <div class="lesson-demo">
+                    <div class="demo-header">
+                        <i class="fas fa-gamepad"></i>
+                        Демо-версия управления
+                    </div>
+                    <div class="race-demo">
+                        <div class="race-track" id="raceTrack">
+                            <div class="road-lines"></div>
+                            <div class="demo-car" id="demoCar">
+                                <div class="skid-effect" id="skidLeft" style="left: -10px; top: 5px; display: none;"></div>
+                                <div class="skid-effect" id="skidRight" style="right: -10px; top: 5px; display: none;"></div>
+                            </div>
+                        </div>
+                        <div class="speedometer">
+                            <div style="font-size: 14px; color: var(--racing-gray);">СКОРОСТЬ</div>
+                            <div class="speed-value" id="speedValue">0</div>
+                            <div class="speed-unit">км/ч</div>
+                            <div style="margin-top: 10px; display: flex; justify-content: space-between;">
+                                <div class="indicator indicator-racing" id="gearIndicator">1 передача</div>
+                                <div class="indicator indicator-success" id="nitroIndicator">Нитро: 100%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="controls">
+                        <button class="control-btn" onmousedown="startControl('up')" onmouseup="stopControl('up')" ontouchstart="startControl('up')" ontouchend="stopControl('up')">
+                            <i class="fas fa-arrow-up"></i>
+                        </button>
+                        <button class="control-btn" onmousedown="startControl('left')" onmouseup="stopControl('left')" ontouchstart="startControl('left')" ontouchend="stopControl('left')">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <button class="control-btn" onmousedown="startControl('right')" onmouseup="stopControl('right')" ontouchstart="startControl('right')" ontouchend="stopControl('right')">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button class="control-btn" onmousedown="startControl('down')" onmouseup="stopControl('down')" ontouchstart="startControl('down')" ontouchend="stopControl('down')">
+                            <i class="fas fa-arrow-down"></i>
+                        </button>
+                        <button class="control-btn" style="grid-column: span 2;" onclick="activateNitro()" id="nitroButton">
+                            <i class="fas fa-bolt"></i> НИТРО
+                        </button>
+                        <button class="control-btn" style="grid-column: span 2;" onclick="resetCar()">
+                            <i class="fas fa-redo"></i> СБРОС
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <blockquote>
+                <strong>Внимание!</strong> Этот мастер-класс использует физику автомобиля, которая отличается от простого движения. Мы будем учитывать сцепление, инерцию и повороты — всё как в реальной машине!
+            </blockquote>
+
+            <!-- Шаг 1 -->
+            <div class="creation-steps">
+                <h2>Шаг 1: Настройка проекта и создание машины</h2>
+
+                <div class="creation-step">
+                    <h3>Создаём новый проект</h3>
+                    <p>Откройте Godot и создайте новый проект:</p>
+                    <ul>
+                        <li><strong>Название:</strong> "RacingGame2D"</li>
+                        <li><strong>Путь:</strong> Выберите папку для проекта</li>
+                        <li><strong>Рендерер:</strong> Forward+ (для 2D тоже подходит)</li>
+                        <li><strong>Версия Godot:</strong> 4.0 или новее</li>
+                    </ul>
+
+                    <div class="node-tree">
+                        <div class="node-item"><i class="fas fa-folder node-icon"></i> RacingGame2D/</div>
+                        <div class="node-item"><i class="fas fa-folder node-icon"></i> scenes/</div>
+                        <div class="node-item"><i class="fas fa-folder node-icon"></i> scripts/</div>
+                        <div class="node-item"><i class="fas fa-folder node-icon"></i> assets/</div>
+                        <div class="node-item"><i class="fas fa-folder node-icon"></i> textures/</div>
+                        <div class="node-item"><i class="fas fa-file node-icon"></i> main.tscn</div>
+                    </div>
+                </div>
+
+                <div class="creation-step">
+                    <h3>Создаём сцену машины</h3>
+                    <p>Создайте новую сцену и добавьте следующие узлы:</p>
+
+                    <div class="node-tree">
+                        <div class="node-item"><i class="fas fa-car node-icon"></i> <span class="node-type">RigidBody2D</span> (основа машины)</div>
+                        <div class="node-item"><i class="fas fa-square node-icon"></i> <span class="node-type">CollisionShape2D</span> (форма столкновений)</div>
+                        <div class="node-item"><i class="fas fa-image node-icon"></i> <span class="node-type">Sprite2D</span> (внешний вид машины)</div>
+                        <div class="node-item"><i class="fas fa-tachometer-alt node-icon"></i> <span class="node-type">Timer</span> (для нитро)</div>
+                        <div class="node-item"><i class="fas fa-fire node-icon"></i> <span class="node-type">CPUParticles2D</span> (выхлоп)</div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-cog"></i>
+                                Настройка RigidBody2D
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+                        <pre><code class="language-gdscript"># В инспекторе установите:
+Режим: Character (для лучшего контроля)
+Масса: 1000 (кг - вес машины)
+Линейное затухание: 0.1
+Угловое затухание: 0.2
+Гравитация: 0 (мы сами будем управлять физикой)</code></pre>
+                    </div>
+
+                    <div class="tip-box">
+                        <h4><i class="fas fa-question-circle"></i> Почему RigidBody2D?</h4>
+                        <p>RigidBody2D имеет встроенную физику, которая идеально подходит для автомобилей. Он учитывает массу, инерцию и столкновения, что делает движение реалистичным.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 2 -->
+            <div class="creation-steps">
+                <h2>Шаг 2: Физика автомобиля и управление</h2>
+
+                <div class="creation-step">
+                    <h3>Создаём скрипт управления машиной</h3>
+                    <p>Создайте новый скрипт "Car.gd" и прикрепите его к RigidBody2D:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-file-code"></i>
+                                Основные переменные машины
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+                        <pre><code class="language-gdscript">extends RigidBody2D
+
+# Параметры машины (можно менять в инспекторе)
+@export var max_speed = 500.0
+@export var acceleration = 800.0
+@export var braking_power = 1000.0
+@export var steering_angle = 0.3  # Максимальный угол поворота колес
+@export var traction_fast = 0.1   # Сцепление на скорости
+@export var traction_slow = 0.7   # Сцепление на малой скорости
+
+# Текущие значения
+var current_speed = 0.0
+var steering = 0.0
+var nitro_boost = 1.0
+var nitro_amount = 100.0
+var is_braking = false
+
+# Ссылки на узлы
+@onready var exhaust_particles = $ExhaustParticles
+@onready var nitro_timer = $NitroTimer
+
+func _ready():
+    # Инициализация
+    linear_damp = 0.1
+    exhaust_particles.emitting = false
+
+func _physics_process(delta):
+    # Получаем ввод от игрока
+    get_input()
+
+    # Применяем движение
+    apply_movement(delta)
+
+    # Применяем поворот
+    apply_steering(delta)
+
+    # Обновляем частицы выхлопа
+    update_exhaust()</code></pre>
+                    </div>
+                </div>
+
+                <div class="creation-step">
+                    <h3>Функции управления и движения</h3>
+                    <p>Добавим обработку ввода и физику движения:</p>
+
+                    <div class="interactive-example">
+                        <div class="example-header">
+                            <i class="fas fa-sliders-h"></i>
+                            Настройте физику машины
+                        </div>
+                        <div class="physics-demo">
+                            <div class="physics-controls">
+                                <div class="physics-slider">
+                                    <div class="slider-label">
+                                        <span>Максимальная скорость</span>
+                                        <span class="slider-value" id="maxSpeedValue">500</span>
+                                    </div>
+                                    <input type="range" min="100" max="1000" value="500" class="slider" id="maxSpeedSlider" oninput="updatePhysicsValues()">
+                                </div>
+
+                                <div class="physics-slider">
+                                    <div class="slider-label">
+                                        <span>Ускорение</span>
+                                        <span class="slider-value" id="accelerationValue">800</span>
+                                    </div>
+                                    <input type="range" min="100" max="2000" value="800" class="slider" id="accelerationSlider" oninput="updatePhysicsValues()">
+                                </div>
+
+                                <div class="physics-slider">
+                                    <div class="slider-label">
+                                        <span>Мощность торможения</span>
+                                        <span class="slider-value" id="brakingValue">1000</span>
+                                    </div>
+                                    <input type="range" min="100" max="3000" value="1000" class="slider" id="brakingSlider" oninput="updatePhysicsValues()">
+                                </div>
+
+                                <div class="physics-slider">
+                                    <div class="slider-label">
+                                        <span>Угол поворота</span>
+                                        <span class="slider-value" id="steeringValue">0.3</span>
+                                    </div>
+                                    <input type="range" min="0.1" max="1.0" step="0.1" value="0.3" class="slider" id="steeringSlider" oninput="updatePhysicsValues()">
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 20px;">
+                                <button class="btn" onclick="applyPhysicsToDemo()" style="width: 100%;">
+                                    <i class="fas fa-play-circle"></i> Применить к демо-машине
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-code"></i>
+                                Функции управления
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+<pre><code class="language-gdscript">func get_input():
+    # Управление газом/тормозом
+    var throttle = Input.get_action_strength("accelerate")
+    var brake = Input.get_action_strength("brake")
+
+    # Определяем, ускоряемся или тормозим
+    if throttle > 0:
+        current_speed = min(current_speed + acceleration * throttle, max_speed)
+        is_braking = false
+    elif brake > 0:
+        current_speed = max(current_speed - braking_power * brake, 0)
+        is_braking = true
+    else:
+        # Плавное замедление при отпускании педалей
+        current_speed = lerp(current_speed, 0, 0.05)
+        is_braking = false
+
+    # Управление поворотом
+    var steer_input = Input.get_action_strength("steer_right") - Input.get_action_strength("steer_left")
+    steering = lerp(steering, steer_input * steering_angle, 0.3)
+
+    # Нитро (Shift)
+    if Input.is_action_pressed("nitro") and nitro_amount > 0:
+        nitro_boost = 1.5
+        nitro_amount -= 20 * get_physics_process_delta_time()
+        nitro_amount = max(nitro_amount, 0)
+    else:
+        nitro_boost = 1.0
+        # Восстановление нитро
+        if nitro_amount < 100:
+            nitro_amount += 10 * get_physics_process_delta_time()
+
+func apply_movement(delta):
+    # Вычисляем направление движения (вперед по локальной оси Y)
+    var forward_vector = Vector2(0, -1).rotated(rotation)
+
+    # Применяем скорость с учетом нитро
+    var speed_vector = forward_vector * current_speed * nitro_boost * delta
+
+    # Применяем силу к RigidBody
+    apply_central_impulse(speed_vector)
+
+func apply_steering(delta):
+    # Поворачиваем машину в зависимости от скорости
+    # На высокой скорости поворот медленнее (реалистичнее)
+    var speed_factor = 1.0 - (current_speed / max_speed) * 0.7
+    var rotation_speed = steering * speed_factor * delta * 5
+
+    # Применяем вращение
+    angular_velocity = rotation_speed
+
+    # Дрифт (боковое скольжение)
+    var lateral_velocity = linear_velocity.dot(Vector2.RIGHT.rotated(rotation))
+    var traction = lerp(traction_fast, traction_slow, 1.0 - current_speed / max_speed)
+    var anti_drift_force = -lateral_velocity * traction * Vector2.RIGHT.rotated(rotation)
+
+    apply_central_impulse(anti_drift_force * delta)</code></pre>
+                    </div>
+
+                    <div class="warning-box">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Важно!</h4>
+                        <p>Не забудьте настроить действия ввода в Project Settings → Input Map. Добавьте действия: "accelerate", "brake", "steer_left", "steer_right", "nitro".</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 3 -->
+            <div class="creation-steps">
+                <h2>Шаг 3: Создание трассы</h2>
+
+                <div class="creation-step">
+                    <h3>Используем TileMap для построения трассы</h3>
+                    <p>TileMap — идеальный инструмент для создания уровней в 2D играх:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-road"></i>
+                                Создание TileMap
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+                        <pre><code class="language-gdscript"># Создайте новую сцену с TileMap узлом
+# Импортируйте или создайте тайлсет для трассы:
+# 1. Асфальт (дорога)
+# 2. Трава (обочина)
+# 3. Бордюр
+# 4. Разметка
+# 5. Песок/гравий (вне трассы)
+
+# Настройки TileMap:
+Размер ячейки: 64x64
+Режим тайлов: Square
+Формат тайлсета: Atlas</code></pre>
+                    </div>
+
+                    <div class="node-tree">
+                        <div class="node-item"><i class="fas fa-map node-icon"></i> <span class="node-type">TileMap</span> (основа трассы)</div>
+                        <div class="node-item"><i class="fas fa-layer-group node-icon"></i> <span class="node-type">TileMapLayer</span> (разметка)</div>
+                        <div class="node-item"><i class="fas fa-tree node-icon"></i> <span class="node-type">Node2D</span> (декорации)</div>
+                        <div class="node-item"><i class="fas fa-flag-checkered node-icon"></i> <span class="node-type">Area2D</span> (линия старта/финиша)</div>
+                        <div class="node-item"><i class="fas fa-cube node-icon"></i> <span class="node-type">StaticBody2D</span> (препятствия)</div>
+                    </div>
+                </div>
+
+                <div class="creation-step">
+                    <h3>Создаём коллизии для трассы</h3>
+                    <p>Добавляем физические свойства разным участкам трассы:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-cogs"></i>
+                                Скрипт для определения поверхности
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+<pre><code class="language-gdscript"># Создайте скрипт "TrackSurface.gd" для Area2D
+extends Area2D
+
+# Типы поверхности и их свойства
+enum SurfaceType { ASPHALT, GRASS, GRAVEL, SAND }
+
+@export var surface_type: SurfaceType = SurfaceType.ASPHALT
+
+# Сопротивление и сцепление для каждого типа
+var surface_properties = {
+    SurfaceType.ASPHALT: {"friction": 0.9, "drag": 0.1},
+    SurfaceType.GRASS: {"friction": 0.5, "drag": 0.3},
+    SurfaceType.GRAVEL: {"friction": 0.4, "drag": 0.4},
+    SurfaceType.SAND: {"friction": 0.3, "drag": 0.5}
+}
+
+# Когда машина заезжает на поверхность
+func _on_body_entered(body):
+    if body.is_in_group("car"):
+        var props = surface_properties[surface_type]
+        body.set_surface_properties(props)
+
+# Когда машина съезжает с поверхности
+func _on_body_exited(body):
+    if body.is_in_group("car"):
+        # Возвращаем свойства асфальта по умолчанию
+        var default_props = surface_properties[SurfaceType.ASPHALT]
+        body.set_surface_properties(default_props)</code></pre>
+                    </div>
+
+                    <div class="tip-box">
+                        <h4><i class="fas fa-paint-roller"></i> Дизайн трассы</h4>
+                        <p>Создавайте интересные трассы с поворотами разной сложности, прямыми участками для ускорения и опасными зонами (песок, гравий). Чередуйте левые и правые повороты для разнообразия.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Интерактивный пример управления -->
+            <div class="lesson-container">
+                <div class="lesson-explanation">
+                    <h3><i class="fas fa-car-side"></i> Как работает физика автомобиля?</h3>
+                    <p>Давайте разберём ключевые моменты нашей реализации:</p>
+
+                    <div class="example-steps">
+                        <li><strong>RigidBody2D</strong> — обеспечивает реалистичную физику с массой и инерцией</li>
+                        <li><strong>Применение импульсов</strong> — вместо прямого изменения позиции</li>
+                        <li><strong>Сцепление (traction)</strong> — меняется в зависимости от скорости</li>
+                        <li><strong>Дрифт</strong> — контролируемое скольжение в поворотах</li>
+                        <li><strong>Нитро-буст</strong> — временное увеличение скорости</li>
+                        <li><strong>Разные поверхности</strong> — асфальт, трава, гравий</li>
+                    </div>
+
+                    <div class="tip-box">
+                        <h4><i class="fas fa-rocket"></i> Профессиональный совет</h4>
+                        <p>Для более реалистичной физики используйте RayCast2D для определения касания колес с поверхностью. Это позволит реализовать подвеску и независимое управление каждым колесом!</p>
+                    </div>
+                </div>
+
+                <div class="lesson-demo">
+                    <div class="demo-header">
+                        <i class="fas fa-play-circle"></i>
+                        Попробуйте разные настройки
+                    </div>
+                    <div style="background: var(--light-bg); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                        <p style="margin-bottom: 15px;"><strong>Изменяйте параметры и смотрите, как меняется управление:</strong></p>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px;">Тип привода:</label>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-outline" style="flex: 1; padding: 10px;" onclick="setDriveType('fwd')">Передний</button>
+                                <button class="btn-outline" style="flex: 1; padding: 10px;" onclick="setDriveType('rwd')">Задний</button>
+                                <button class="btn-outline" style="flex: 1; padding: 10px;" onclick="setDriveType('awd')">Полный</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px;">Тип покрышки:</label>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-outline" style="flex: 1; padding: 10px;" onclick="setTireType('slick')">Слик</button>
+                                <button class="btn-outline" style="flex: 1; padding: 10px;" onclick="setTireType('race')">Гоночная</button>
+                                <button class="btn-outline" style="flex: 1; padding: 10px;" onclick="setTireType('street')">Уличная</button>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; font-size: 14px;">Жесткость подвески:</label>
+                            <input type="range" min="1" max="10" value="5" class="slider" id="suspensionSlider" style="width: 100%;" oninput="updateSuspension()">
+                            <div style="text-align: center; font-size: 14px; margin-top: 5px;" id="suspensionValue">Средняя</div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--light-bg); border-radius: 10px; padding: 20px;">
+                        <p style="margin-bottom: 15px;"><strong>Сгенерированный код:</strong></p>
+                        <div style="background: #1a1b26; color: #c0caf5; padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 14px; overflow-x: auto;">
+                            <span style="color: #ff79c6;">var</span> drive_type = <span id="codeDriveType" style="color: #f1fa8c;">"rwd"</span><br>
+                            <span style="color: #ff79c6;">var</span> tire_type = <span id="codeTireType" style="color: #f1fa8c;">"race"</span><br>
+                            <span style="color: #ff79c6;">var</span> suspension_stiffness = <span id="codeSuspension" style="color: #bd93f9;">5</span><br><br>
+                            <span style="color: #ff79c6;">func</span> <span style="color: #50fa7b;">get_traction</span>():<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;<span style="color: #ff79c6;">match</span> tire_type:<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="codeTireCase1" style="color: #f1fa8c;">"slick"</span>: <span style="color: #ff79c6;">return</span> <span style="color: #bd93f9;">1.0</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="codeTireCase2" style="color: #f1fa8c;">"race"</span>: <span style="color: #ff79c6;">return</span> <span style="color: #bd93f9;">0.8</span><br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span id="codeTireCase3" style="color: #f1fa8c;">"street"</span>: <span style="color: #ff79c6;">return</span> <span style="color: #bd93f9;">0.6</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 4 -->
+            <div class="creation-steps">
+                <h2>Шаг 4: Камера и интерфейс</h2>
+
+                <div class="creation-step">
+                    <h3>Создаём камеру, следующую за машиной</h3>
+                    <p>Камера должна плавно следовать за машиной с небольшим опережением:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-video"></i>
+                                Скрипт камеры
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+<pre><code class="language-gdscript">extends Camera2D
+
+# Цель (машина)
+@export var target: Node2D
+# Смещение камеры относительно машины
+@export var camera_offset = Vector2(0, -100)
+# Плавность следования (0-1, где 1 - мгновенно)
+@export var smoothness = 0.1
+# Отдаление на скорости
+@export var zoom_out_on_speed = true
+@export var max_zoom = 1.5
+
+var base_zoom = 1.0
+
+func _ready():
+    # Делаем камеру текущей
+    make_current()
+
+    if target == null:
+        # Автоматически ищем машину
+        target = get_tree().get_first_node_in_group("car")
+
+func _process(delta):
+    if target == null:
+        return
+
+    # Плавное перемещение к цели с учетом скорости
+    var target_position = target.global_position
+
+    # Добавляем смещение вперед по направлению движения
+    if target.has_method("get_velocity"):
+        var velocity = target.get_velocity()
+        var look_ahead = velocity.normalized() * min(velocity.length() * 0.1, 200)
+        target_position += look_ahead
+
+    # Добавляем смещение камеры
+    target_position += camera_offset.rotated(target.rotation)
+
+    # Плавная интерполяция позиции
+    global_position = global_position.lerp(target_position, smoothness)
+
+    # Настраиваем зум в зависимости от скорости
+    if zoom_out_on_speed and target.has_method("get_speed"):
+        var speed = target.get_speed()
+        var target_zoom = lerp(base_zoom, max_zoom, speed / 500.0)
+        zoom = zoom.lerp(Vector2(target_zoom, target_zoom), 0.05)
+
+    # Поворачиваем камеру вместе с машиной (опционально)
+    # rotation = lerp_angle(rotation, target.rotation, 0.05)</code></pre>
+                    </div>
+                </div>
+
+                <div class="creation-step">
+                    <h3>Создаём интерфейс гонки</h3>
+                    <p>Добавляем UI элементы: спидометр, таймер, позиция, мини-карта:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-tachometer-alt"></i>
+                                UI скрипт
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+<pre><code class="language-gdscript">extends CanvasLayer
+
+# Ссылки на элементы UI
+@onready var speed_label = $SpeedLabel
+@onready var time_label = $TimeLabel
+@onready var position_label = $PositionLabel
+@onready var nitro_bar = $NitroBar
+@onready var gear_label = $GearLabel
+@onready var lap_label = $LapLabel
+
+# Ссылка на машину игрока
+var player_car = null
+
+func _ready():
+    # Ищем машину игрока
+    player_car = get_tree().get_first_node_in_group("player_car")
+
+    # Запускаем таймер заезда
+    $RaceTimer.start()
+
+func _process(delta):
+    if player_car == null:
+        return
+
+    # Обновляем спидометр (км/ч)
+    var speed_kmh = player_car.get_linear_velocity().length() * 3.6
+    speed_label.text = "%03d" % int(speed_kmh) + " км/ч"
+
+    # Обновляем таймер
+    var elapsed_time = $RaceTimer.wait_time - $RaceTimer.time_left
+    var minutes = int(elapsed_time) / 60
+    var seconds = int(elapsed_time) % 60
+    var milliseconds = int((elapsed_time - int(elapsed_time)) * 100)
+    time_label.text = "%02d:%02d.%02d" % [minutes, seconds, milliseconds]
+
+    # Обновляем нитро-бар
+    if player_car.has_method("get_nitro_amount"):
+        nitro_bar.value = player_car.get_nitro_amount()
+
+    # Определяем передачу по скорости
+    update_gear_display(speed_kmh)
+
+func update_gear_display(speed):
+    var gear = 1
+    if speed > 200: gear = 6
+    elif speed > 160: gear = 5
+    elif speed > 120: gear = 4
+    elif speed > 80: gear = 3
+    elif speed > 40: gear = 2
+
+    gear_label.text = str(gear)
+
+    # Подсветка красным при перегазовке
+    if speed > 220:
+        gear_label.add_theme_color_override("font_color", Color.RED)
+    else:
+        gear_label.add_theme_color_override("font_color", Color.WHITE)</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 5 -->
+            <div class="creation-steps">
+                <h2>Шаг 5: Система заездов и ИИ противников</h2>
+
+                <div class="creation-step">
+                    <h3>Создаём ИИ для машин-противников</h3>
+                    <p>Противники должны уметь ехать по трассе и обгонять игрока:</p>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-robot"></i>
+                                Скрипт ИИ противника
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+<pre><code class="language-gdscript">extends RigidBody2D
+
+# Ссылка на машину игрока для преследования
+@export var player_car: Node2D
+# Путь для следования (массив точек)
+@export var path_points: Array[Vector2]
+# Текущая целевая точка
+var current_target_index = 0
+# Дистанция для смены точки
+var point_reach_distance = 50.0
+# Агрессивность ИИ (0-1)
+@export var aggression = 0.5
+
+# Для избегания столкновений
+var avoid_vector = Vector2.ZERO
+var raycasts = []
+
+func _ready():
+    # Создаем RayCast2D для обнаружения препятствий
+    for i in range(5):
+        var raycast = RayCast2D.new()
+        raycast.enabled = true
+        raycast.collide_with_areas = true
+        raycast.collide_with_bodies = true
+        raycast.collision_mask = 1
+
+        # Направления лучей: вперед и под углами
+        var angle = deg_to_rad(-30 + i * 15)
+        raycast.target_position = Vector2(0, -200).rotated(angle)
+
+        add_child(raycast)
+        raycasts.append(raycast)
+
+func _physics_process(delta):
+    if path_points.size() == 0:
+        return
+
+    # Получаем текущую целевую точку
+    var target_point = path_points[current_target_index]
+
+    # Проверяем RayCast'ы для избегания препятствий
+    update_avoidance()
+
+    # Вычисляем направление к цели с учетом избегания
+    var to_target = (target_point - global_position).normalized()
+    var desired_direction = (to_target + avoid_vector * 2.0).normalized()
+
+    # Вычисляем угол поворота
+    var forward = Vector2(0, -1).rotated(rotation)
+    var angle_to_target = forward.angle_to(desired_direction)
+
+    # Управляем поворотом
+    var steer_strength = clamp(angle_to_target * 2.0, -1.0, 1.0)
+    apply_steering(steer_strength, delta)
+
+    # Управляем скоростью
+    var distance_to_target = global_position.distance_to(target_point)
+    var target_speed = min(300.0, distance_to_target * 2.0)
+    apply_acceleration(target_speed, delta)
+
+    # Проверяем, достигли ли точки
+    if distance_to_target < point_reach_distance:
+        current_target_index = (current_target_index + 1) % path_points.size()
+
+func update_avoidance():
+    avoid_vector = Vector2.ZERO
+
+    for raycast in raycasts:
+        if raycast.is_colliding():
+            var distance = raycast.global_position.distance_to(raycast.get_collision_point())
+            var weight = 1.0 - (distance / raycast.target_position.length())
+
+            # Вектор от препятствия
+            var normal = (raycast.global_position - raycast.get_collision_point()).normalized()
+            avoid_vector += normal * weight
+
+    if avoid_vector.length() > 0:
+        avoid_vector = avoid_vector.normalized()
+
+func apply_steering(steer_amount, delta):
+    # Пропорциональный контроллер поворота
+    var max_steer = deg_to_rad(30)
+    var target_steer = steer_amount * max_steer
+
+    # Плавный поворот
+    var current_steer = angular_velocity
+    var steer_diff = target_steer - current_steer
+    angular_velocity += steer_diff * 5.0 * delta
+
+func apply_acceleration(target_speed, delta):
+    var current_speed = linear_velocity.length()
+    var speed_diff = target_speed - current_speed
+
+    if speed_diff > 0:
+        # Ускорение
+        var acceleration_force = Vector2(0, -1).rotated(rotation) * min(speed_diff * 10.0, 800.0) * delta
+        apply_central_impulse(acceleration_force)
+    else:
+        # Торможение
+        var brake_force = Vector2(0, 1).rotated(rotation) * min(-speed_diff * 5.0, 500.0) * delta
+        apply_central_impulse(brake_force)</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Шаг 6 -->
+            <div class="creation-steps">
+                <h2>Шаг 6: Эффекты и звуки</h2>
+
+                <div class="creation-step">
+                    <h3>Добавляем визуальные эффекты</h3>
+                    <p>Эффекты делают игру живой и динамичной:</p>
+
+                    <div class="interactive-example">
+                        <div class="example-header">
+                            <i class="fas fa-fire"></i>
+                            Эффекты, которые мы добавим
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                            <div style="text-align: center;">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #EF4444 0%, #F87171 100%); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                    <i class="fas fa-fire"></i>
+                                </div>
+                                <p style="font-size: 14px;">Выхлопные газы</p>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                    <i class="fas fa-cloud"></i>
+                                </div>
+                                <p style="font-size: 14px;">Следы от шин</p>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <p style="font-size: 14px;">Эффект нитро</p>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                    <i class="fas fa-sparkles"></i>
+                                </div>
+                                <p style="font-size: 14px;">Искры при столкновении</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-header">
+                            <div class="code-title">
+                                <i class="fas fa-magic"></i>
+                                Система эффектов
+                            </div>
+                            <button class="copy-btn">Копировать</button>
+                        </div>
+<pre><code class="language-gdscript"># Скрипт для управления эффектами машины
+extends Node2D
+
+@onready var car = get_parent()
+@onready var exhaust_particles = $ExhaustParticles
+@onready var tire_smoke_particles = $TireSmokeParticles
+@onready var nitro_particles = $NitroParticles
+@onready var skid_marks = $SkidMarks
+
+var is_skidding = false
+var last_skid_position = Vector2.ZERO
+var skid_distance_threshold = 20.0
+
+func _process(delta):
+    if car == null:
+        return
+
+    # Обновляем эффекты в зависимости от состояния машины
+    update_exhaust_effect()
+    update_tire_smoke_effect()
+    update_skid_marks()
+
+    # Нитро-эффект
+    if car.nitro_boost > 1.0:
+        nitro_particles.emitting = true
+        nitro_particles.process_material.initial_velocity = car.current_speed * 0.5
+    else:
+        nitro_particles.emitting = false
+
+func update_exhaust_effect():
+    # Интенсивность выхлопа зависит от ускорения
+    var acceleration_factor = car.current_speed / car.max_speed
+
+    exhaust_particles.emitting = true
+    exhaust_particles.amount = int(lerp(5, 20, acceleration_factor))
+    exhaust_particles.process_material.initial_velocity = car.current_speed * 0.3
+
+    # Цвет выхлопа (темнее при высоких оборотах)
+    var color = lerp(Color(0.3, 0.3, 0.3), Color(0.1, 0.1, 0.1), acceleration_factor)
+    exhaust_particles.process_material.color = color
+
+func update_tire_smoke_effect():
+    # Дым при пробуксовке или резком торможении
+    var lateral_speed = abs(car.linear_velocity.dot(Vector2.RIGHT.rotated(car.rotation)))
+    var is_drifting = lateral_speed > 50.0
+
+    if is_drifting or car.is_braking:
+        tire_smoke_particles.emitting = true
+        tire_smoke_particles.process_material.initial_velocity = car.current_speed * 0.2
+    else:
+        tire_smoke_particles.emitting = false
+
+func update_skid_marks():
+    # Оставляем следы от шин при дрифте
+    var lateral_speed = abs(car.linear_velocity.dot(Vector2.RIGHT.rotated(car.rotation)))
+    is_skidding = lateral_speed > 80.0
+
+    if is_skidding:
+        var current_pos = car.global_position
+
+        # Создаем новый след, если отъехали достаточно далеко
+        if current_pos.distance_to(last_skid_position) > skid_distance_threshold:
+            create_skid_mark(current_pos, car.rotation)
+            last_skid_position = current_pos
+
+func create_skid_mark(position, rotation):
+    # Создаем спрайт следа от шины
+    var skid_mark = Sprite2D.new()
+    skid_mark.texture = preload("res://assets/skid_mark.png")
+    skid_mark.global_position = position
+    skid_mark.rotation = rotation
+    skid_mark.modulate = Color(0.2, 0.2, 0.2, 0.7)
+    skid_mark.z_index = -1
+
+    # Добавляем на сцену
+    get_tree().current_scene.add_child(skid_mark)
+
+    # Автоматическое удаление через 5 секунд
+    await get_tree().create_timer(5.0).timeout
+    skid_mark.queue_free()</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Лайфхаки -->
+            <div class="tip-box" style="margin: 50px 0;">
+                <h4><i class="fas fa-gem"></i> Лайфхаки и профессиональные советы</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div>
+                        <h5 style="color: var(--primary-blue); margin-bottom: 10px;">1. Оптимизация физики</h5>
+                        <p>Используйте <code>PhysicsServer2D.area_set_param()</code> для настройки глобальных параметров физики. Уменьшите количество итераций физики для слабых устройств.</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--primary-blue); margin-bottom: 10px;">2. Сетка путей для ИИ</h5>
+                        <p>Создайте редактор путей в Godot для расстановки точек маршрута. Это позволит быстро создавать новые трассы с ИИ.</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--primary-blue); margin-bottom: 10px;">3. Динамическая сложность</h5>
+                        <p>Настраивайте агрессивность ИИ в зависимости от позиции игрока. Если игрок позади — ИИ замедляется, если впереди — ускоряется.</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--primary-blue); margin-bottom: 10px;">4. Система респавна</h5>
+                        <p>Добавьте чекпоинты на трассе. Если машина упадет с трассы или застрянет, она вернется к последнему чекпоинту.</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--primary-blue); margin-bottom: 10px;">5. Разные режимы игры</h5>
+                        <p>Создайте несколько режимов: Time Trial (лучшее время), Race (против ИИ), Drift (набор очков за дрифт).</p>
+                    </div>
+                    <div>
+                        <h5 style="color: var(--primary-blue); margin-bottom: 10px;">6. Реплей система</h5>
+                        <p>Записывайте позицию и состояние машины каждый кадр. Это позволит делать повторы заездов и сохранять рекорды.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Итоговый результат -->
+            <div class="lesson-container" style="margin: 60px 0;">
+                <div class="lesson-explanation">
+                    <h3><i class="fas fa-flag-checkered"></i> Что у нас получилось?</h3>
+                    <p>Поздравляю! Вы только что создали полноценную гоночную игру с нуля. Давайте подведём итоги:</p>
+
+                    <div class="example-steps">
+                        <li><strong>Физика:</strong> Реалистичное управление автомобилем с учетом сцепления и инерции</li>
+                        <li><strong>Трасса:</strong> Создание уровней с помощью TileMap и разных поверхностей</li>
+                        <li><strong>ИИ:</strong> Умные противники, следующие по трассе и избегающие столкновений</li>
+                        <li><strong>Интерфейс:</strong> Полный набор гоночного UI: спидометр, таймер, нитро</li>
+                        <li><strong>Эффекты:</strong> Визуальные эффекты для immersion: дым, следы, искры</li>
+                        <li><strong>Камера:</strong> Умная камера, следующая за машиной с опережением</li>
+                    </div>
+
+                    <p style="margin-top: 20px;"><strong>Дальнейшие шаги для улучшения игры:</strong></p>
+                    <ul>
+                        <li>Добавьте систему апгрейдов для машины</li>
+                        <li>Создайте меню выбора машины и трассы</li>
+                        <li>Добавьте мультиплеер (локальный или онлайн)</li>
+                        <li>Создайте систему достижений и таблицу рекордов</li>
+                        <li>Добавьте погодные эффекты (дождь, снег, ночь)</li>
+                        <li>Реализуйте разрушаемость окружающей среды</li>
+                    </ul>
+                </div>
+
+                <div class="lesson-demo">
+                    <div class="demo-header">
+                        <i class="fas fa-trophy"></i>
+                        Ваша гоночная игра готова!
+                    </div>
+                    <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #1F2937 0%, #111827 100%); border-radius: 16px; color: white;">
+                        <i class="fas fa-flag-checkered" style="font-size: 48px; color: var(--racing-red); margin-bottom: 20px;"></i>
+                        <h3 style="color: white; margin-bottom: 10px;">Игра завершена!</h3>
+                        <p style="margin-bottom: 20px;">Вы освоили ключевые навыки создания гоночных игр в Godot. Теперь вы можете:</p>
+
+                        <div style="text-align: left; margin-bottom: 30px;">
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <i class="fas fa-check-circle" style="color: var(--success); margin-right: 10px;"></i>
+                                <span>Экспортировать игру на ПК или мобильные</span>
+                            </div>
+                            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                <i class="fas fa-check-circle" style="color: var(--success); margin-right: 10px;"></i>
+                                <span>Создать собственные трассы в редакторе Godot</span>
+                            </div>
+                            <div style="display: flex; align-items: center;">
+                                <i class="fas fa-check-circle" style="color: var(--success); margin-right: 10px;"></i>
+                                <span>Использовать этот проект как основу для 3D гоночной игры</span>
+                            </div>
+                        </div>
+
+                        <div class="indicator indicator-racing" style="display: inline-block; margin-right: 10px;">+1000 опыта Godot</div>
+                        <div class="indicator indicator-warning" style="display: inline-block;">Уровень: Любитель → Профи</div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn" onclick="downloadRacingProject()" style="width: 100%;">
+                            <i class="fas fa-download"></i> Скачать готовый проект
+                        </button>
+                        <p style="font-size: 14px; color: var(--text-light); margin-top: 10px;">Все файлы Godot + ассеты для гоночной игры</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Автор -->
+            <div class="author-card fade-in">
+                <div class="author-avatar">
+                    AP
+                </div>
+                <div class="author-info">
+                    <h4>Об авторе</h4>
+                    <p><strong>Александр Петров</strong> — ведущий преподаватель школы DOT, разработчик игр с 10-летним опытом. Автор курса "Godot для начинающих" и нескольких популярных игр на Steam.</p>
+                    <p class="author-bio">Специализируется на создании обучающих материалов по Godot Engine и GDScript. Разработал 3 гоночные игры, одна из которых вошла в топ-100 игр в Steam в жанре Racing.</p>
+                </div>
+            </div>
+
+            <!-- Навигация по статьям -->
+            <div class="article-navigation fade-in">
+                <a href="#" class="nav-btn prev">
+                    <i class="fas fa-arrow-left"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Предыдущая статья</div>
+                        <div style="font-weight: 600;">Мастер-класс: как создать простой кликер в Godot</div>
+                    </div>
+                </a>
+                <a href="#" class="nav-btn next">
+                    <i class="fas fa-arrow-right"></i>
+                    <div>
+                        <div style="font-size: 14px; color: var(--text-light);">Следующая статья</div>
+                        <div style="font-weight: 600;">Создание платформера в Godot: от физики до врагов</div>
+                    </div>
+                </a>
+            </div>
+        </article>
+
+        <!-- Похожие статьи -->
+        <section class="related-articles fade-in">
+            <h2>Похожие статьи</h2>
+            <div class="related-grid">
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Мастер-класс</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Мастер-класс: создание платформера в Godot</h3>
+                        <p>Полное руководство по созданию 2D платформера с нуля</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1555949963-aa79dcee981c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">Физика</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Продвинутая физика в Godot 4.0</h3>
+                        <p>Создание реалистичных взаимодействий и симуляций</p>
+                    </div>
+                </a>
+
+                <a href="#" class="related-card">
+                    <div class="related-image" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80');">
+                        <div class="related-badge">AI</div>
+                    </div>
+                    <div class="related-content">
+                        <h3 class="related-title">Создание ИИ для игр в Godot</h3>
+                        <p>Патрулирование, преследование, поведенческие деревья</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Футер -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <span class="logo-font">DOT</span>
+                        <span class="footer-dot">.</span>
+                    </div>
+                    <p class="footer-about">Школа разработки игр для детей. Мы помогаем создавать игры с 2023 года. Блог DOT — это собрание полезных материалов для начинающих и продвинутых разработчиков на Godot.</p>
+
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-vk"></i></a>
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Мастер-классы</a></li>
+                        <li><a href="#">Гоночные игры</a></li>
+                        <li><a href="#">Физика и симуляции</a></li>
+                        <li><a href="#">Искусственный интеллект</a></li>
+                        <li><a href="#">2D графика</a></li>
+                        <li><a href="#">Оптимизация</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Ресурсы</h3>
+                    <ul>
+                        <li><a href="index.html">Главная сайта</a></li>
+                        <li><a href="index.html#lessons">Форматы обучения</a></li>
+                        <li><a href="index.html#plan">Программа курса</a></li>
+                        <li><a href="index.html#projects">Проекты учеников</a></li>
+                        <li><a href="index.html#teachers">Наши преподаватели</a></li>
+                        <li><a href="index.html#form">Запись на пробный урок</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-links">
+                    <h3>Контакты</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> hello@dot-school.ru</li>
+                        <li><i class="fas fa-phone"></i> +7 (999) 123-45-67</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Онлайн-школа</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 DOT School. Все права защищены. | <a href="#" style="color: #94A3B8;">Политика конфиденциальности</a> | <a href="#" style="color: #94A3B8;">Условия использования</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script>
+        // Переменные для демо-машины
+        let carPosition = { x: 50, y: 115 };
+        let carRotation = 0;
+        let carSpeed = 0;
+        let carMaxSpeed = 500;
+        let carAcceleration = 800;
+        let carBraking = 1000;
+        let carSteering = 0.3;
+        let nitroAmount = 100;
+        let nitroActive = false;
+        let activeControls = {};
+        let gear = 1;
+        let driveType = 'rwd';
+        let tireType = 'race';
+
+        // Элементы DOM
+        const carElement = document.getElementById('demoCar');
+        const speedElement = document.getElementById('speedValue');
+        const gearElement = document.getElementById('gearIndicator');
+        const nitroElement = document.getElementById('nitroIndicator');
+        const skidLeft = document.getElementById('skidLeft');
+        const skidRight = document.getElementById('skidRight');
+        const nitroButton = document.getElementById('nitroButton');
+
+        // Обновление позиции машины
+        function updateCarPosition() {
+            carElement.style.left = carPosition.x + 'px';
+            carElement.style.top = carPosition.y + 'px';
+            carElement.style.transform = `rotate(${carRotation}rad)`;
+
+            // Обновляем спидометр
+            const speedKmh = Math.round(carSpeed * 3.6);
+            speedElement.textContent = speedKmh;
+
+            // Обновляем передачу
+            updateGear();
+            gearElement.textContent = gear + ' передача';
+
+            // Обновляем нитро
+            nitroElement.textContent = `Нитро: ${Math.round(nitroAmount)}%`;
+
+            // Эффект нитро
+            if (nitroActive) {
+                carElement.classList.add('nitro-active');
+                nitroButton.style.background = 'var(--racing-yellow)';
+            } else {
+                carElement.classList.remove('nitro-active');
+                nitroButton.style.background = '';
+            }
+
+            // Эффект дрифта
+            const isDrifting = Math.abs(carSpeed * Math.sin(carRotation)) > 20;
+            skidLeft.style.display = isDrifting ? 'block' : 'none';
+            skidRight.style.display = isDrifting ? 'block' : 'none';
+        }
+
+        // Обновление передачи
+        function updateGear() {
+            const speedKmh = Math.abs(carSpeed * 3.6);
+
+            if (speedKmh > 200) gear = 6;
+            else if (speedKmh > 160) gear = 5;
+            else if (speedKmh > 120) gear = 4;
+            else if (speedKmh > 80) gear = 3;
+            else if (speedKmh > 40) gear = 2;
+            else gear = 1;
+
+            // Подсветка при перегазовке
+            if (speedKmh > 220) {
+                gearElement.style.background = 'rgba(239, 68, 68, 0.2)';
+                gearElement.style.color = '#EF4444';
+                gearElement.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            } else {
+                gearElement.style.background = '';
+                gearElement.style.color = '';
+                gearElement.style.borderColor = '';
+            }
+        }
+
+        // Игровой цикл
+        function gameLoop(deltaTime) {
+            // Применяем активные управления
+            if (activeControls['up']) {
+                carSpeed = Math.min(carSpeed + carAcceleration * deltaTime, carMaxSpeed * (nitroActive ? 1.5 : 1));
+            } else if (activeControls['down']) {
+                carSpeed = Math.max(carSpeed - carBraking * deltaTime, -carMaxSpeed * 0.5);
+            } else {
+                // Сопротивление воздуха и трение
+                carSpeed *= (1 - 0.1 * deltaTime);
+                if (Math.abs(carSpeed) < 5) carSpeed = 0;
+            }
+
+            // Поворот
+            if (activeControls['left']) {
+                // Угол поворота зависит от скорости
+                const turnSpeed = carSteering * (1 - Math.abs(carSpeed) / carMaxSpeed * 0.7);
+                carRotation -= turnSpeed * deltaTime;
+            }
+            if (activeControls['right']) {
+                const turnSpeed = carSteering * (1 - Math.abs(carSpeed) / carMaxSpeed * 0.7);
+                carRotation += turnSpeed * deltaTime;
+            }
+
+            // Движение
+            carPosition.x += Math.sin(carRotation) * carSpeed * deltaTime;
+            carPosition.y -= Math.cos(carRotation) * carSpeed * deltaTime;
+
+            // Ограничение в пределах трассы
+            const trackWidth = document.getElementById('raceTrack').offsetWidth;
+            const trackHeight = document.getElementById('raceTrack').offsetHeight;
+
+            carPosition.x = Math.max(10, Math.min(trackWidth - 50, carPosition.x));
+            carPosition.y = Math.max(10, Math.min(trackHeight - 30, carPosition.y));
+
+            // Нитро
+            if (nitroActive && nitroAmount > 0) {
+                nitroAmount -= 30 * deltaTime;
+                if (nitroAmount <= 0) {
+                    nitroAmount = 0;
+                    nitroActive = false;
+                }
+            } else if (nitroAmount < 100) {
+                nitroAmount += 15 * deltaTime;
+            }
+
+            // Обновляем отображение
+            updateCarPosition();
+
+            // Запускаем следующий кадр
+            requestAnimationFrame((timestamp) => {
+                const currentTime = timestamp || Date.now();
+                const delta = (currentTime - (gameLoop.lastTime || currentTime)) / 1000;
+                gameLoop.lastTime = currentTime;
+                gameLoop(delta || 0.016);
+            });
+        }
+
+        // Управление
+        function startControl(control) {
+            activeControls[control] = true;
+        }
+
+        function stopControl(control) {
+            activeControls[control] = false;
+        }
+
+        // Нитро
+        function activateNitro() {
+            if (nitroAmount > 0) {
+                nitroActive = true;
+
+                // Автоматическое отключение через 2 секунды
+                setTimeout(() => {
+                    nitroActive = false;
+                }, 2000);
+            }
+        }
+
+        // Сброс машины
+        function resetCar() {
+            carPosition = { x: 50, y: 115 };
+            carRotation = 0;
+            carSpeed = 0;
+            nitroAmount = 100;
+            nitroActive = false;
+            updateCarPosition();
+        }
+
+        // Настройки физики
+        function updatePhysicsValues() {
+            carMaxSpeed = parseInt(document.getElementById('maxSpeedSlider').value);
+            carAcceleration = parseInt(document.getElementById('accelerationSlider').value);
+            carBraking = parseInt(document.getElementById('brakingSlider').value);
+            carSteering = parseFloat(document.getElementById('steeringSlider').value);
+
+            document.getElementById('maxSpeedValue').textContent = carMaxSpeed;
+            document.getElementById('accelerationValue').textContent = carAcceleration;
+            document.getElementById('brakingValue').textContent = carBraking;
+            document.getElementById('steeringValue').textContent = carSteering.toFixed(1);
+        }
+
+        function applyPhysicsToDemo() {
+            showMessage('Настройки физики применены к демо-машине!');
+        }
+
+        // Тип привода
+        function setDriveType(type) {
+            driveType = type;
+            document.getElementById('codeDriveType').textContent = '"' + type + '"';
+
+            // Подсветка кнопки
+            document.querySelectorAll('[onclick^="setDriveType"]').forEach(btn => {
+                btn.classList.remove('btn');
+                btn.classList.add('btn-outline');
+            });
+            event.target.classList.remove('btn-outline');
+            event.target.classList.add('btn');
+        }
+
+        // Тип покрышки
+        function setTireType(type) {
+            tireType = type;
+            document.getElementById('codeTireType').textContent = '"' + type + '"';
+
+            // Обновляем кейсы в коде
+            document.getElementById('codeTireCase1').textContent = '"slick"';
+            document.getElementById('codeTireCase2').textContent = '"race"';
+            document.getElementById('codeTireCase3').textContent = '"street"';
+
+            // Подсветка кнопки
+            document.querySelectorAll('[onclick^="setTireType"]').forEach(btn => {
+                btn.classList.remove('btn');
+                btn.classList.add('btn-outline');
+            });
+            event.target.classList.remove('btn-outline');
+            event.target.classList.add('btn');
+        }
+
+        // Подвеска
+        function updateSuspension() {
+            const value = parseInt(document.getElementById('suspensionSlider').value);
+            document.getElementById('codeSuspension').textContent = value;
+
+            let text = '';
+            if (value <= 3) text = 'Мягкая';
+            else if (value <= 7) text = 'Средняя';
+            else text = 'Жесткая';
+
+            document.getElementById('suspensionValue').textContent = text;
+        }
+
+        // Функция для показа сообщений
+        function showMessage(text) {
+            // Создаём элемент сообщения
+            const message = document.createElement('div');
+            message.style.position = 'fixed';
+            message.style.top = '20px';
+            message.style.right = '20px';
+            message.style.background = 'var(--success)';
+            message.style.color = 'white';
+            message.style.padding = '15px 20px';
+            message.style.borderRadius = '8px';
+            message.style.boxShadow = '0 5px 15px rgba(0,0,0,0.2)';
+            message.style.zIndex = '10000';
+            message.style.fontWeight = '600';
+            message.textContent = text;
+            message.style.animation = 'fadeIn 0.3s';
+
+            document.body.appendChild(message);
+
+            // Удаляем через 3 секунды
+            setTimeout(() => {
+                message.style.animation = 'fadeIn 0.3s reverse';
+                setTimeout(() => message.remove(), 300);
+            }, 3000);
+        }
+
+        // Функция для "скачивания" проекта
+        function downloadRacingProject() {
+            showMessage('Ссылка на гоночный проект будет отправлена на ваш email! (демо)');
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCarPosition();
+            updatePhysicsValues();
+            gameLoop(0.016);
+
+            // Обработка клавиатуры
+            document.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case 'ArrowUp': case 'w': case 'W':
+                        startControl('up'); break;
+                    case 'ArrowDown': case 's': case 'S':
+                        startControl('down'); break;
+                    case 'ArrowLeft': case 'a': case 'A':
+                        startControl('left'); break;
+                    case 'ArrowRight': case 'd': case 'D':
+                        startControl('right'); break;
+                    case 'Shift': case ' ':
+                        activateNitro(); break;
+                    case 'r': case 'R':
+                        resetCar(); break;
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                switch(e.key) {
+                    case 'ArrowUp': case 'w': case 'W':
+                        stopControl('up'); break;
+                    case 'ArrowDown': case 's': case 'S':
+                        stopControl('down'); break;
+                    case 'ArrowLeft': case 'a': case 'A':
+                        stopControl('left'); break;
+                    case 'ArrowRight': case 'd': case 'D':
+                        stopControl('right'); break;
+                }
+            });
+        });
+
+        // Мобильное меню
+        const hamburger = document.getElementById('hamburger');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        hamburger.addEventListener('click', () => {
+            mobileMenu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+        });
+
+        // Закрытие меню при клике на ссылку
+        document.querySelectorAll('.mobile-nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.remove('active');
+                hamburger.classList.remove('active');
+            });
+        });
+
+        // Фиксированная шапка при скролле
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 50) {
+                header.classList.add('header-scrolled');
+            } else {
+                header.classList.remove('header-scrolled');
+            }
+        });
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const targetId = this.getAttribute('href');
+                if(targetId === '#' || targetId.includes('index.html')) return;
+
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    // Закрываем мобильное меню если открыто
+                    mobileMenu.classList.remove('active');
+                    hamburger.classList.remove('active');
+
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Копирование кода
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const codeBlock = this.closest('.code-block');
+                const code = codeBlock.querySelector('code').textContent;
+
+                // Копируем в буфер обмена
+                navigator.clipboard.writeText(code).then(() => {
+                    // Визуальная обратная связь
+                    const originalText = this.textContent;
+                    this.textContent = 'Скопировано!';
+                    this.style.background = '#10B981';
+
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.background = '';
+                    }, 2000);
+                });
+            });
+        });
+
+        // Анимация появления элементов
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+
+        // Инициализация при загрузке
+        window.addEventListener('load', () => {
+            // Анимация появления заголовка
+            document.querySelector('h1').style.opacity = '1';
+            document.querySelector('h1').style.transform = 'translateY(0)';
+            document.querySelector('h1').style.transition = 'opacity 1s ease, transform 1s ease';
+        });
+    </script>
+</body>
+</html>
